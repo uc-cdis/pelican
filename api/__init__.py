@@ -59,10 +59,10 @@ class Import(Resource):
 
         if input_file:
             filename = secure_filename(input_file.filename)
-            input_file.save(os.path.join(BASE_DIR, 'upload', filename))
+            input_file.save(os.path.join(BASE_DIR, 'pelican', 'upload', filename))
 
             avro = app.sc.binaryFiles(
-                "file://" + os.path.join(BASE_DIR, 'upload', filename)) \
+                "file://" + os.path.join(BASE_DIR, 'pelican', 'upload', filename)) \
                 .flatMap(lambda x: reader(BytesIO(x[1])))
 
             # get all node types from the Avro file
