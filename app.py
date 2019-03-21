@@ -8,5 +8,5 @@ def run_server(app):
 
 if __name__ == '__main__':
     sc = init_spark_context()
-    app = create_app('development', sc)
+    app = create_app('production', sc)
     run_server(app)
