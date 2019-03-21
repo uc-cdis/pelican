@@ -46,6 +46,11 @@ class Schema(Resource):
         return app.schema
 
 
+class Status(Resource):
+    def get(self):
+        return NotImplementedError
+
+
 class Import(Resource):
     def put(self):
         input_file = request.files['file']
@@ -63,10 +68,10 @@ class Import(Resource):
             # get all node types from the Avro file
             node_types = avro.map(lambda v: v['name']).distinct().collect()
 
-            url = "jdbc:postgresql://localhost/metadata_db"
+            url = app.config['DB_URL']
             properties = {
-                "user": "postgres",
-                "password": "postgres",
+                "user": app.config['DB_USER'],
+                "password": app.config['DB_PASS'],
                 'driver': 'org.postgresql.Driver',
                 "stringtype": "unspecified"
             }
@@ -160,9 +165,9 @@ class ExportProject(Resource):
 
         db = spark.read.format('jdbc'). \
             options(
-            url='jdbc:postgresql://localhost/metadata_db',
-            user='postgres',
-            password='postgres',
+            url=app.config['DB_URL'],
+            user=app.config['DB_URL'],
+            password=app.config['DB_URL'],
             driver='org.postgresql.Driver')
 
         all_tables = db.options(dbtable='information_schema.tables').load().select('table_name')
@@ -273,6 +278,7 @@ def create_app(env, sc=None):
     api = Api(api_bp)
 
     api.add_resource(Schema, '/schema')
+    api.add_resource(Status, '/_status')
     api.add_resource(Import, '/import')
     api.add_resource(ExportProject, '/export')
     api.add_resource(ExportId, '/export/<node_id>')
