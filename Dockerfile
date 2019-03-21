@@ -75,6 +75,7 @@ ENV PATH=${SQOOP_HOME}/bin:${HADOOP_HOME}/sbin:$HADOOP_HOME/bin:${JAVA_HOME}/bin
 
 COPY . /pelican
 WORKDIR /pelican
+RUN mkdir -p /pelican/upload
 
 EXPOSE 5000
 
