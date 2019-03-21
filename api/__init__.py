@@ -166,8 +166,8 @@ class ExportProject(Resource):
         db = spark.read.format('jdbc'). \
             options(
             url=app.config['DB_URL'],
-            user=app.config['DB_URL'],
-            password=app.config['DB_URL'],
+            user=app.config['DB_USER'],
+            password=app.config['DB_PASS'],
             driver='org.postgresql.Driver')
 
         all_tables = db.options(dbtable='information_schema.tables').load().select('table_name')
