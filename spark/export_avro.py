@@ -4,7 +4,6 @@ from collections import defaultdict
 from fastavro import writer
 
 from utils.avro import create_avro_from
-from utils.encoding import *
 
 
 def export_avro(spark, schema, metadata, dd_tables, db_url, db_user, db_pass):

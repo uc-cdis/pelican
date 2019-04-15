@@ -6,9 +6,7 @@ from fastavro import reader
 from flask import current_app as app
 from pyspark.sql import Row
 
-from utils.avro import create_avro_from
 from utils.dictionary import *
-from utils.encoding import *
 
 
 def is_enum(field):
@@ -29,7 +27,7 @@ def import_avro(spark, model, filename, url, mode, properties):
 
     parsed_schema = avro.map(lambda x: reader(BytesIO(x[1])).writer_schema).first()
 
-    avro =  avro \
+    avro = avro \
         .flatMap(lambda x: reader(BytesIO(x[1])))
 
     # get all node types from the Avro file

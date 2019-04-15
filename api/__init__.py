@@ -5,7 +5,7 @@ from io import BytesIO
 
 from fastavro import reader
 from fastavro import writer
-from flask import Flask, Blueprint, send_file, after_this_request, request, jsonify
+from flask import Flask, Blueprint, send_file, after_this_request, request, jsonify, request
 from flask import current_app as app
 from flask_restful import Resource, Api
 from pyspark.sql import SparkSession, Row
@@ -15,7 +15,6 @@ from config import config
 from spark import *
 from utils.avro import create_avro_from
 from utils.dictionary import *
-from utils.encoding import *
 
 
 from avro_utils.avro_schema import AvroSchema
@@ -38,7 +37,9 @@ class Schema(Resource):
 
 class Status(Resource):
     def get(self):
-        return NotImplementedError
+        response = jsonify({'status': 'ok'})
+        response.status_code = 200
+        return response
 
 
 class Import(Resource):
@@ -71,24 +72,22 @@ class Import(Resource):
             return {'False'}
 
 
-class ExportProject(Resource):
+class Export(Resource):
     def get(self):
-        spark = SparkSession.builder.getOrCreate()
-        avro_filename = export_avro(spark, app.schema, app.metadata, app.dd_tables, app.config['DB_URL'], app.config['DB_USER'], app.config['DB_PASS'])
+        if request.get_json():
+            print(request.get_json()['case'])
 
-        @after_this_request
-        def remove_temporary_file(response):
-            # remove the temporary file after response
-            os.remove(avro_filename)
-            return response
+        if False:
+            spark = SparkSession.builder.getOrCreate()
+            avro_filename = export_avro(spark, app.schema, app.metadata, app.dd_tables, app.config['DB_URL'], app.config['DB_USER'], app.config['DB_PASS'])
 
-        return send_file(avro_filename, as_attachment=True, attachment_filename='full_dump.avro')
+            @after_this_request
+            def remove_temporary_file(response):
+                # remove the temporary file after response
+                os.remove(avro_filename)
+                return response
 
-
-class ExportId(Resource):
-    def get(self, node_id):
-        print(node_id)
-        raise NotImplementedError
+            return send_file(avro_filename, as_attachment=True, attachment_filename='full_dump.avro')
 
 
 def create_app(env, sc=None):
@@ -101,8 +100,7 @@ def create_app(env, sc=None):
     api.add_resource(Schema, '/schema')
     api.add_resource(Status, '/_status')
     api.add_resource(Import, '/import')
-    api.add_resource(ExportProject, '/export')
-    api.add_resource(ExportId, '/export/<node_id>')
+    api.add_resource(Export, '/export')
     app.register_blueprint(api_bp, url_prefix="/api/v1")
 
     dictionary_url = app.config['DICTIONARY_URL']
