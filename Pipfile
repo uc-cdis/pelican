@@ -6,28 +6,18 @@ verify_ssl = true
 [dev-packages]
 pyspark-stubs = "*"
 jupyter = "*"
+pipenv-to-requirements = "~=0.7"
 
 [packages]
-Flask = "*"
-Flask-CORS = "~=3.0"
-Flask-RESTful = "~=0.3"
-authutils = "~=3.0"
-cdiserrors = "~=0.1"
-cdispyutils = "~=0.2,>=0.2.11"
-datamodelutils = "~=0.4"
-userdatamodel = "~=1.1"
-gdcdatamodel = "~=1.3"
-psqlgraph = "~=1.2"
-cdisutils = "~=1.2"
-dictionaryutils = "~=2.0"
-fastavro = "~=0.21"
-requests = "*"
-psycopg2-binary = "~=2.7"
-inflection = "~=0.3"
-pyspark = "~=2.4"
-psutil = "~=5.6"
-functools32 = "*"
 pypfb = {ref = "master",git = "https://github.com/uc-cdis/pypfb.git",editable = true}
+dictionaryutils = "*"
+fastavro = "*"
+requests = "*"
+psycopg2-binary = "*"
+inflection = "*"
+pyspark = "*"
+psutil = "*"
+boto3 = "*"
 
 [requires]
 python_version = "2.7"
