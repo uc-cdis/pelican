@@ -1,4 +1,4 @@
-FROM python:2-slim
+FROM python:2
 
 #ENV DEBIAN_FRONTEND=noninteractive \
 #    SQOOP_VERSION="1.4.7" \
