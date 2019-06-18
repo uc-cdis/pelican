@@ -1,0 +1,26 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pyspark-stubs = "*"
+jupyter = "*"
+pipenv-to-requirements = "~=0.7"
+
+[packages]
+pypfb = {ref = "master",git = "https://github.com/uc-cdis/pypfb.git",editable = true}
+dictionaryutils = "*"
+fastavro = "*"
+requests = "*"
+psycopg2-binary = "*"
+inflection = "*"
+pyspark = "*"
+psutil = "*"
+boto3 = "*"
+gdcdatamodel = "*"
+psqlgraph = "*"
+functools32 = "==3.2.3-2"
+
+[requires]
+python_version = "2.7"
