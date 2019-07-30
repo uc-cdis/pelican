@@ -1,6 +1,7 @@
 import base64
 import json
 import tempfile
+import os
 from collections import defaultdict
 
 from fastavro import writer
@@ -102,9 +103,11 @@ def export_avro(
 
     current_ids = defaultdict(list)
 
-    current_ids["case"] = case_ids
+    root_node = os.environ["ROOT_NODE"]
 
-    prev = "case"
+    current_ids[root_node] = case_ids
+
+    prev = root_node
 
     # for k, v in it.items():
     for k in traverse_order:

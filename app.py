@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 
@@ -23,11 +24,15 @@ if __name__ == "__main__":
     sc = init_spark_context()
 
     DICTIONARY_URL = os.environ["DICTIONARY_URL"]
+
+    with open("/peregrine-creds.json") as pelican_creds_file:
+        peregrine_creds = json.load(pelican_creds_file)
+
     DB_URL = "jdbc:postgresql://{}/{}".format(
-        os.environ["DB_HOST"], os.environ["DB_DATABASE"]
+        peregrine_creds["db_host"], peregrine_creds["db_database"]
     )
-    DB_USER = os.environ["DB_USERNAME"]
-    DB_PASS = os.environ["DB_PASSWORD"]
+    DB_USER = peregrine_creds["db_username"]
+    DB_PASS = peregrine_creds["db_password"]
 
     dictionary_url = DICTIONARY_URL
     dictionary, model = init_dictionary(url=dictionary_url)
@@ -41,7 +46,7 @@ if __name__ == "__main__":
 
     spark = SparkSession.builder.getOrCreate()
 
-    traverse_order = get_all_paths(model, "case")
+    traverse_order = get_all_paths(model, os.environ["ROOT_NODE"])
 
     avro_filename = export_avro(
         spark,
@@ -55,11 +60,14 @@ if __name__ == "__main__":
         DB_PASS,
     )
 
+    with open("/pelican-creds.json") as pelican_creds_file:
+        pelican_creds = json.load(pelican_creds_file)
+
     s3file = s3upload_file(
-        os.environ["BUCKET_NAME"],
+        pelican_creds["manifest_bucket_name"],
         "{}.avro".format(datetime.now().strftime('export_%Y-%m-%dT%H:%M:%S')),
-        os.environ["S3_KEY"],
-        os.environ["S3_SECRET"],
+        pelican_creds["aws_access_key_id"],
+        pelican_creds["aws_secret_access_key"],
         avro_filename,
     )
 
