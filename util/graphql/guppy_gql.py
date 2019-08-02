@@ -1,3 +1,5 @@
+import os
+
 from base_gql import BaseGQL
 
 
@@ -8,9 +10,11 @@ class GuppyGQL(object, BaseGQL):
         BaseGQL.__init__(self, url)
 
     def execute(self, filters=None):
+        root_node = os.environ["ROOT_NODE"]
+
         query = (
-            "query($filter: JSON) { case(first: 10000, filter: $filter) { case_id } }"
+            "query($filter: JSON) {{ {root}(first: 10000, filter: $filter) {{ {root}_id }} }}".format(root=root_node)
         )
         r = BaseGQL._execute(self, query, filters=filters)
-        ids = [case["case_id"] for case in r["data"]["case"]]
+        ids = [item["{}_id".format(root_node)] for item in r["data"][root_node]]
         return ids

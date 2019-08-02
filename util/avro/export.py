@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import tempfile
 from collections import defaultdict
 
@@ -34,8 +35,8 @@ def create_node_dict(node_id, node_name, values, node_schema, edges):
                 if "type" in x:
                     is_enum = is_enum or (x["type"] == "enum")
         elif (
-            "type" in current_node_schema["type"]
-            and current_node_schema["type"]["type"] == "enum"
+                "type" in current_node_schema["type"]
+                and current_node_schema["type"]["type"] == "enum"
         ):
             is_enum = True
         else:
@@ -60,20 +61,44 @@ def create_node_dict(node_id, node_name, values, node_schema, edges):
     return node_dict
 
 
+def split_by_n(input_list, n=1000):
+    return [input_list[x:x + n] for x in range(0, len(input_list), n)]
+
+
+def get_ids_from_table(db, table, ids, id_column):
+    data = None
+
+    for ids_chunk in split_by_n(ids):
+        current_chunk_data = db \
+            .option("query", "SELECT * FROM {} WHERE {} IN ('{}')".format(table, id_column, "','".join(ids_chunk))) \
+            .load()
+
+        if data:
+            data = data.union(current_chunk_data)
+        else:
+            data = current_chunk_data
+
+    return data if data else None
+
+
 def export_avro(
-    spark,
-    schema,
-    metadata,
-    dd_tables,
-    traverse_order,
-    case_ids,
-    db_url,
-    db_user,
-    db_pass,
+        spark,
+        schema,
+        metadata,
+        dd_tables,
+        traverse_order,
+        case_ids,
+        db_url,
+        db_user,
+        db_pass,
 ):
     node_label, edge_label = dd_tables
 
     db = spark.read.format("jdbc").options(
+        url=db_url, user=db_user, password=db_pass, driver="org.postgresql.Driver"
+    )
+
+    db_tables = spark.read.format("jdbc").options(
         url=db_url, user=db_user, password=db_pass, driver="org.postgresql.Driver"
     )
 
@@ -102,11 +127,10 @@ def export_avro(
 
     current_ids = defaultdict(list)
 
-    current_ids["case"] = case_ids
+    root_node = os.environ["ROOT_NODE"]
+    prev = root_node
+    current_ids[prev] = case_ids
 
-    prev = "case"
-
-    # for k, v in it.items():
     for k in traverse_order:
         v = it[k]
         if visited.get(k, False):
@@ -116,18 +140,32 @@ def export_avro(
         for edge_table in v:
             dst_table_name = edge_label[edge_table]["dst"]
             src_table_name = edge_label[edge_table]["src"]
-            edges = (
-                db.options(dbtable=edge_table)
-                .load()
-                .rdd.map(
-                    lambda x: {
-                        "src_id": x["src_id"],
-                        "dst_id": x["dst_id"],
-                        "dst_name": dst_table_name,
-                    }
-                )
-                .filter(lambda x: x["dst_id"] in current_ids[dst_table_name])
+            edges = get_ids_from_table(db_tables, edge_table, current_ids[dst_table_name], "dst_id")
+
+            if not edges:
+                print(table_logs.format(edge_table, 0, total))
+                continue
+
+            edges = edges.rdd.map(
+                lambda x: {
+                    "src_id": x["src_id"],
+                    "dst_id": x["dst_id"],
+                    "dst_name": dst_table_name,
+                }
             )
+
+            # (
+            #     db.options(dbtable=edge_table)
+            #         .load()
+            #         .rdd.map(
+            #         lambda x: {
+            #             "src_id": x["src_id"],
+            #             "dst_id": x["dst_id"],
+            #             "dst_name": dst_table_name,
+            #         }
+            #     )
+            #         .filter(lambda x: x["dst_id"] in current_ids[dst_table_name])
+            # )
 
             total += edges.count()
             print(table_logs.format(edge_table, edges.count(), total))
@@ -148,16 +186,28 @@ def export_avro(
 
         prev = k
 
-        nodes = (
-            db.options(dbtable=node_table)
-            .load()
-            .rdd.map(
-                lambda x: create_node_dict(
-                    x["node_id"], node_name, x["_props"], node_schema, node_edges
-                )
+        nodes = get_ids_from_table(db_tables, node_table, current_ids[prev], "node_id")
+
+        if not nodes:
+            print(table_logs.format(node_table, 0, total))
+            continue
+
+        nodes = nodes.rdd.map(
+            lambda x: create_node_dict(
+                x["node_id"], node_name, x["_props"], node_schema, node_edges
             )
-            .filter(lambda v: v["id"] in current_ids[prev])
         )
+
+        # (
+        #     db.options(dbtable=node_table)
+        #         .load()
+        #         .rdd.map(
+        #         lambda x: create_node_dict(
+        #             x["node_id"], node_name, x["_props"], node_schema, node_edges
+        #         )
+        #     )
+        #         .filter(lambda v: v["id"] in current_ids[prev])
+        # )
         total += nodes.count()
         print(table_logs.format(node_table, nodes.count(), total))
 
