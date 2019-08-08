@@ -6,7 +6,6 @@ verify_ssl = true
 [dev-packages]
 pyspark-stubs = "*"
 jupyter = "*"
-pipenv-to-requirements = "~=0.7"
 
 [packages]
 pypfb = {ref = "0.1.0",git = "https://github.com/uc-cdis/pypfb.git",editable = true}

@@ -1,27 +1,27 @@
 import json
 import os
 import sys
-
-from avro_utils.avro_schema import AvroSchema
-from pyspark.sql import SparkSession
-
-from util.avro.export import export_avro
-from util.dictionary import get_all_paths
-from util.dictionary import init_dictionary, get_tables
-from util.graphql.guppy_gql import GuppyGQL
-from util.s3 import s3upload_file
-from util.spark import init_spark_context
-
 from datetime import datetime
 
+from avro_utils.avro_schema import AvroSchema
+from pyspark import SparkConf
+from pyspark.sql import SparkSession
+
+from pelican.avro.export import export_avro
+from pelican.dictionary import get_all_paths, init_dictionary, get_tables
+from pelican.graphql.guppy_gql import GuppyGQL
+from pelican.s3 import s3upload_file
 
 if __name__ == "__main__":
-    gql = GuppyGQL(hostname="https://{}".format(os.environ["GEN3_HOSTNAME"]))
-    case_ids = gql.execute(filters=os.environ["INPUT_DATA"])
+    node = os.environ["ROOT_NODE"]
+    access_token = os.environ["ACCESS_TOKEN"]
+    hostname = os.environ["GEN3_HOSTNAME"]
+    input_data = os.environ["INPUT_DATA"]
+
+    gql = GuppyGQL(node=node, url="https://{}".format(hostname), access_token=access_token)
+    case_ids = gql.execute(filters=input_data)
 
     sys.stderr.write(str(case_ids))
-
-    sc = init_spark_context()
 
     DICTIONARY_URL = os.environ["DICTIONARY_URL"]
 
@@ -44,9 +44,17 @@ if __name__ == "__main__":
     node_tables, edge_tables = get_tables(model)
     dd_tables = (node_tables, edge_tables)
 
-    spark = SparkSession.builder.getOrCreate()
+    conf = (
+        SparkConf()
+        .set("spark.jars", os.environ["POSTGRES_JAR_PATH"])
+        .set("spark.driver.memory", "10g")
+        .set("spark.executor.memory", "10g")
+        .setAppName("pelican")
+    )
 
-    traverse_order = get_all_paths(model, os.environ["ROOT_NODE"])
+    spark = SparkSession.builder.config(conf=conf).getOrCreate()
+
+    traverse_order = get_all_paths(model, node)
 
     avro_filename = export_avro(
         spark,
@@ -58,6 +66,7 @@ if __name__ == "__main__":
         DB_URL,
         DB_USER,
         DB_PASS,
+        node
     )
 
     with open("/pelican-creds.json") as pelican_creds_file:
@@ -68,7 +77,7 @@ if __name__ == "__main__":
         "{}.avro".format(datetime.now().strftime('export_%Y-%m-%dT%H:%M:%S')),
         pelican_creds["aws_access_key_id"],
         pelican_creds["aws_secret_access_key"],
-        avro_filename,
+        avro_filename
     )
 
     print("[out] {}".format(s3file))

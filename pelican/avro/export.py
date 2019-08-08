@@ -1,8 +1,8 @@
 import base64
 import json
-import os
 import tempfile
 from collections import defaultdict
+from datetime import datetime
 
 from fastavro import writer
 
@@ -81,53 +81,29 @@ def get_ids_from_table(db, table, ids, id_column):
     return data if data else None
 
 
-def export_avro(
-        spark,
-        schema,
-        metadata,
-        dd_tables,
-        traverse_order,
-        case_ids,
-        db_url,
-        db_user,
-        db_pass,
-):
+def export_avro(spark, schema, metadata, dd_tables, traverse_order, case_ids, db_url, db_user, db_pass, root_node):
+    start_time = datetime.now()
+    print(start_time)
+
     node_label, edge_label = dd_tables
 
     db = spark.read.format("jdbc").options(
         url=db_url, user=db_user, password=db_pass, driver="org.postgresql.Driver"
     )
 
-    db_tables = spark.read.format("jdbc").options(
-        url=db_url, user=db_user, password=db_pass, driver="org.postgresql.Driver"
-    )
-
-    all_tables = (
-        db.options(dbtable="information_schema.tables").load().select("table_name")
-    )
-
     it = defaultdict(list)
 
-    edge_tables = [
-        t["table_name"]
-        for t in all_tables.toLocalIterator()
-        if t["table_name"].startswith("edge_")
-    ]
-
     for e, v in edge_label.items():
-        if e in edge_tables:
-            it[v["src"]].append(e)
+        it[v["src"]].append(e)
 
     visited = {}
 
-    table_logs = "{:>40} = {:<10} [{:<12}]"
-    total = 0
+    table_logs = "{:<40}"
 
     avro_filename, parsed_schema = create_avro_from(schema, metadata)
 
     current_ids = defaultdict(list)
 
-    root_node = os.environ["ROOT_NODE"]
     prev = root_node
     current_ids[prev] = case_ids
 
@@ -140,10 +116,10 @@ def export_avro(
         for edge_table in v:
             dst_table_name = edge_label[edge_table]["dst"]
             src_table_name = edge_label[edge_table]["src"]
-            edges = get_ids_from_table(db_tables, edge_table, current_ids[dst_table_name], "dst_id")
+            edges = get_ids_from_table(db, edge_table, current_ids[dst_table_name], "dst_id")
 
             if not edges:
-                print(table_logs.format(edge_table, 0, total))
+                print(table_logs.format(edge_table))
                 continue
 
             edges = edges.rdd.map(
@@ -153,22 +129,7 @@ def export_avro(
                     "dst_name": dst_table_name,
                 }
             )
-
-            # (
-            #     db.options(dbtable=edge_table)
-            #         .load()
-            #         .rdd.map(
-            #         lambda x: {
-            #             "src_id": x["src_id"],
-            #             "dst_id": x["dst_id"],
-            #             "dst_name": dst_table_name,
-            #         }
-            #     )
-            #         .filter(lambda x: x["dst_id"] in current_ids[dst_table_name])
-            # )
-
-            total += edges.count()
-            print(table_logs.format(edge_table, edges.count(), total))
+            print(table_logs.format(edge_table))
 
             for e in edges.toLocalIterator():
                 node_edges[e["src_id"]].append(
@@ -186,10 +147,10 @@ def export_avro(
 
         prev = k
 
-        nodes = get_ids_from_table(db_tables, node_table, current_ids[prev], "node_id")
+        nodes = get_ids_from_table(db, node_table, current_ids[prev], "node_id")
 
         if not nodes:
-            print(table_logs.format(node_table, 0, total))
+            print(table_logs.format(node_table))
             continue
 
         nodes = nodes.rdd.map(
@@ -197,21 +158,12 @@ def export_avro(
                 x["node_id"], node_name, x["_props"], node_schema, node_edges
             )
         )
-
-        # (
-        #     db.options(dbtable=node_table)
-        #         .load()
-        #         .rdd.map(
-        #         lambda x: create_node_dict(
-        #             x["node_id"], node_name, x["_props"], node_schema, node_edges
-        #         )
-        #     )
-        #         .filter(lambda v: v["id"] in current_ids[prev])
-        # )
-        total += nodes.count()
-        print(table_logs.format(node_table, nodes.count(), total))
+        print(table_logs.format(node_table))
 
         with open(avro_filename, "a+b") as output_file:
             writer(output_file, parsed_schema, nodes.toLocalIterator())
+
+    time_elapsed = datetime.now() - start_time
+    print("Elapsed time: {}".format(time_elapsed))
 
     return avro_filename
