@@ -8,7 +8,7 @@ from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
 from pelican.avro.export import export_avro
-from pelican.dictionary import get_all_paths, init_dictionary, get_tables
+from pelican.dictionary import get_all_paths_dfs, init_dictionary, get_tables
 from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.s3 import s3upload_file
 
@@ -46,15 +46,15 @@ if __name__ == "__main__":
 
     conf = (
         SparkConf()
-        .set("spark.jars", os.environ["POSTGRES_JAR_PATH"])
-        .set("spark.driver.memory", "10g")
-        .set("spark.executor.memory", "10g")
-        .setAppName("pelican")
+            .set("spark.jars", os.environ["POSTGRES_JAR_PATH"])
+            .set("spark.driver.memory", "10g")
+            .set("spark.executor.memory", "10g")
+            .setAppName("pelican")
     )
 
     spark = SparkSession.builder.config(conf=conf).getOrCreate()
 
-    traverse_order = get_all_paths(model, node)
+    traverse_order = get_all_paths_dfs(model, node)
 
     avro_filename = export_avro(
         spark,

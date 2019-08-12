@@ -35,7 +35,7 @@ def get_tables(model):
     return node_tables, edge_tables
 
 
-def get_all_paths(model, node_name):
+def get_all_paths_bfs(model, node_name):
     queue = [node_name]
 
     visited = {}
@@ -58,3 +58,23 @@ def get_all_paths(model, node_name):
                 visited[i] = True
 
     return r
+
+
+def get_all_paths_dfs(model, node_name):
+    stack, path = [node_name], []
+
+    while stack:
+        vertex = stack.pop()
+        if vertex in path:
+            continue
+        path.append(vertex)
+
+        node = model.Node.get_subclass(vertex).__name__
+        edges = model.Edge._get_edges_with_dst(node)
+
+        for neighbor in [
+            model.Node.get_subclass_named(e.__src_class__).get_label() for e in edges
+        ]:
+            stack.append(neighbor)
+
+    return path

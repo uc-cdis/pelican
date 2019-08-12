@@ -78,7 +78,7 @@ def get_ids_from_table(db, table, ids, id_column):
         else:
             data = current_chunk_data
 
-    return data if data else None
+    return data if data and data.first() else None
 
 
 def export_avro(spark, schema, metadata, dd_tables, traverse_order, case_ids, db_url, db_user, db_pass, root_node):
@@ -96,8 +96,6 @@ def export_avro(spark, schema, metadata, dd_tables, traverse_order, case_ids, db
     for e, v in edge_label.items():
         it[v["src"]].append(e)
 
-    visited = {}
-
     table_logs = "{:<40}"
 
     avro_filename, parsed_schema = create_avro_from(schema, metadata)
@@ -106,20 +104,17 @@ def export_avro(spark, schema, metadata, dd_tables, traverse_order, case_ids, db
 
     prev = root_node
     current_ids[prev] = case_ids
+    node_edges = defaultdict(list)
 
     for k in traverse_order:
         v = it[k]
-        if visited.get(k, False):
-            continue
-        visited[k] = True
-        node_edges = defaultdict(list)
         for edge_table in v:
             dst_table_name = edge_label[edge_table]["dst"]
             src_table_name = edge_label[edge_table]["src"]
             edges = get_ids_from_table(db, edge_table, current_ids[dst_table_name], "dst_id")
 
             if not edges:
-                print(table_logs.format(edge_table))
+                print('[WARNING]' + table_logs.format(edge_table))
                 continue
 
             edges = edges.rdd.map(
