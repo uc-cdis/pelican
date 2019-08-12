@@ -2,9 +2,10 @@ import requests
 
 
 class BaseGQL:
-    def __init__(self, node, url, access_token):
+    def __init__(self, node, hostname, access_token):
         self.node = node
-        self.url = url
+        self.hostname = hostname
+        self.url = None
         self.access_token = access_token
         self.headers = {"Authorization": "Bearer {}".format(self.access_token)}
 

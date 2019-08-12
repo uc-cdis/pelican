@@ -2,12 +2,12 @@ from base_gql import BaseGQL
 
 
 class GuppyGQL(object, BaseGQL):
-    def __init__(self, node, url, access_token):
+    def __init__(self, node, hostname, access_token):
         super(GuppyGQL, self).__init__()
-        BaseGQL.__init__(self, node, url, access_token)
+        BaseGQL.__init__(self, node, hostname, access_token)
 
     def _count(self, filters=None):
-        self.url = "{}/{}".format(self.url, "guppy/graphql/")
+        self.url = "{}/{}".format(self.hostname, "guppy/graphql/")
         query = "query ($filter: JSON) {{ _aggregation {{ {node}(filter: $filter, accessibility: all) {{ _totalCount }} }} }}".format(
             node=self.node
         )
@@ -22,7 +22,7 @@ class GuppyGQL(object, BaseGQL):
     def execute(self, filters=None):
         if self._count(filters) > 10000:
             print("fallback to /download endpoint")
-            self.url = "{}/{}".format(self.url, "guppy/download")
+            self.url = "{}/{}".format(self.hostname, "guppy/download")
             query = {
                 "type": self.node,
                 "fields": ["{}_id".format(self.node)],
@@ -33,7 +33,7 @@ class GuppyGQL(object, BaseGQL):
             return [item["{}_id".format(self.node)] for item in r]
 
         else:
-            self.url = "{}/{}".format(self.url, "guppy/graphql")
+            self.url = "{}/{}".format(self.hostname, "guppy/graphql")
             query = "query($filter: JSON) {{ {root}(first: 10000, filter: $filter) {{ {root}_id }} }}".format(
                 root=self.node
             )
