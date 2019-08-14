@@ -1,9 +1,12 @@
 import json
 import os
 import sys
+import tempfile
 from datetime import datetime
 
-from avro_utils.avro_schema import AvroSchema
+from pfb.importers.gen3dict import _from_dict
+from pfb.reader import PFBReader
+from pfb.writer import PFBWriter
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
@@ -23,7 +26,7 @@ if __name__ == "__main__":
 
     sys.stderr.write(str(case_ids))
 
-    DICTIONARY_URL = os.environ["DICTIONARY_URL"]
+    dictionary_url = os.environ["DICTIONARY_URL"]
 
     with open("/peregrine-creds.json") as pelican_creds_file:
         peregrine_creds = json.load(pelican_creds_file)
@@ -34,15 +37,15 @@ if __name__ == "__main__":
     DB_USER = peregrine_creds["db_username"]
     DB_PASS = peregrine_creds["db_password"]
 
-    dictionary_url = DICTIONARY_URL
     dictionary, model = init_dictionary(url=dictionary_url)
-
-    avro_schema = AvroSchema.from_dictionary(dictionary.schema)
-    schema = avro_schema.avro_schema
-    metadata = avro_schema.get_ontology_references()
 
     node_tables, edge_tables = get_tables(model)
     dd_tables = (node_tables, edge_tables)
+    traverse_order = get_all_paths_dfs(model, node)
+
+    # avro_schema = AvroSchema.from_dictionary(dictionary.schema)
+    # schema = avro_schema.avro_schema
+    # metadata = avro_schema.get_ontology_references()
 
     conf = (
         SparkConf()
@@ -54,30 +57,44 @@ if __name__ == "__main__":
 
     spark = SparkSession.builder.config(conf=conf).getOrCreate()
 
-    traverse_order = get_all_paths_dfs(model, node)
+    with tempfile.NamedTemporaryFile(mode="w+b", delete=False) as avro_output:
+        with PFBWriter(avro_output) as pfb_file:
+            _from_dict(pfb_file, dictionary_url)
+            filename = pfb_file.name
 
-    avro_filename = export_avro(
-        spark,
-        schema,
-        metadata,
-        dd_tables,
-        traverse_order,
-        case_ids,
-        DB_URL,
-        DB_USER,
-        DB_PASS,
-        node
-    )
+    with tempfile.NamedTemporaryFile(mode="w+b", delete=False) as avro_output:
+        with PFBReader(filename) as reader:
+            with PFBWriter(avro_output) as pfb_file:
+                pfb_file.copy_schema(reader)
+                pfb_file.write()
+                fname = pfb_file.name
+
+    with open(fname, "a+b") as avro_output:
+        with PFBReader(filename) as reader:
+            with PFBWriter(avro_output) as pfb_file:
+                pfb_file.copy_schema(reader)
+                export_avro(
+                    spark,
+                    pfb_file,
+                    dd_tables,
+                    traverse_order,
+                    case_ids,
+                    DB_URL,
+                    DB_USER,
+                    DB_PASS,
+                    node
+                )
 
     with open("/pelican-creds.json") as pelican_creds_file:
         pelican_creds = json.load(pelican_creds_file)
 
+    avro_filename = "{}.avro".format(datetime.now().strftime('export_%Y-%m-%dT%H:%M:%S'))
     s3file = s3upload_file(
         pelican_creds["manifest_bucket_name"],
-        "{}.avro".format(datetime.now().strftime('export_%Y-%m-%dT%H:%M:%S')),
+        avro_filename,
         pelican_creds["aws_access_key_id"],
         pelican_creds["aws_secret_access_key"],
-        avro_filename
+        fname
     )
 
     print("[out] {}".format(s3file))

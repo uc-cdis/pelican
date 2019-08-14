@@ -1,60 +1,15 @@
-import base64
 import json
-import tempfile
 from collections import defaultdict
 from datetime import datetime
 
-from fastavro import writer
 
-
-def create_avro_from(schema, metadata):
-    with tempfile.NamedTemporaryFile(mode="w+b", delete=False) as avro_output:
-        name = avro_output.name
-        writer(avro_output, schema, metadata)
-    return name, schema
-
-
-def create_node_dict(node_id, node_name, values, node_schema, edges):
+def create_node_dict(node_id, node_name, values, edges):
     inside = json.loads(values)
-
-    vals = {}
-
-    for k, v in inside.iteritems():
-        is_unicode = type(v) == unicode
-        current_node_schema = filter(lambda x: x["name"] == k, node_schema["fields"])
-
-        if len(current_node_schema) > 0:
-            current_node_schema = current_node_schema[0]
-        else:
-            print("{} is not in the schema for {}".format(k, node_name))
-            continue
-
-        if isinstance(current_node_schema["type"], list):
-            is_enum = False
-            for x in current_node_schema["type"]:
-                if "type" in x:
-                    is_enum = is_enum or (x["type"] == "enum")
-        elif (
-                "type" in current_node_schema["type"]
-                and current_node_schema["type"]["type"] == "enum"
-        ):
-            is_enum = True
-        else:
-            is_enum = False
-
-        if is_unicode and not is_enum:
-            val = str(v)
-        elif is_enum:
-            val = base64.b64encode(str(v)).rstrip("=")
-        else:
-            val = v
-
-        vals[str(k)] = val
 
     node_dict = {
         "id": node_id,
         "name": node_name,
-        "object": (node_name, vals),
+        "object": inside,
         "relations": edges[node_id] if node_id in edges else [],
     }
 
@@ -81,7 +36,9 @@ def get_ids_from_table(db, table, ids, id_column):
     return data if data and data.first() else None
 
 
-def export_avro(spark, schema, metadata, dd_tables, traverse_order, case_ids, db_url, db_user, db_pass, root_node):
+def export_avro(spark, pfb_file, dd_tables, traverse_order, case_ids, db_url, db_user, db_pass, root_node):
+    pfb_file.open_mode = "a+b"
+
     start_time = datetime.now()
     print(start_time)
 
@@ -97,9 +54,6 @@ def export_avro(spark, schema, metadata, dd_tables, traverse_order, case_ids, db
         it[v["src"]].append(e)
 
     table_logs = "{:<40}"
-
-    avro_filename, parsed_schema = create_avro_from(schema, metadata)
-
     current_ids = defaultdict(list)
 
     prev = root_node
@@ -136,10 +90,6 @@ def export_avro(spark, schema, metadata, dd_tables, traverse_order, case_ids, db
         node_table = "node_" + k.replace("_", "")
         node_name = node_label[node_table]
 
-        node_schema = filter(
-            lambda x: x["name"] == node_name, parsed_schema["fields"][2]["type"]
-        )[0]
-
         prev = k
 
         nodes = get_ids_from_table(db, node_table, current_ids[prev], "node_id")
@@ -150,15 +100,14 @@ def export_avro(spark, schema, metadata, dd_tables, traverse_order, case_ids, db
 
         nodes = nodes.rdd.map(
             lambda x: create_node_dict(
-                x["node_id"], node_name, x["_props"], node_schema, node_edges
+                x["node_id"], node_name, x["_props"], node_edges
             )
         )
         print(table_logs.format(node_table))
 
-        with open(avro_filename, "a+b") as output_file:
-            writer(output_file, parsed_schema, nodes.toLocalIterator())
+        pfb_file.write(nodes.toLocalIterator(), metadata=False)
 
     time_elapsed = datetime.now() - start_time
     print("Elapsed time: {}".format(time_elapsed))
 
-    return avro_filename
+    return

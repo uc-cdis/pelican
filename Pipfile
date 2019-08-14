@@ -9,7 +9,7 @@ jupyter = "*"
 jupyterlab = "*"
 
 [packages]
-pypfb = {ref = "0.1.0",git = "https://github.com/uc-cdis/pypfb.git",editable = true}
+pypfb = {ref = "0.2.0",git = "https://github.com/uc-cdis/pypfb.git",editable = true}
 dictionaryutils = "*"
 fastavro = "*"
 requests = "*"
@@ -20,7 +20,7 @@ psutil = "*"
 boto3 = "*"
 gdcdatamodel = "*"
 psqlgraph = "*"
-functools32 = "*"
+functools32 = "==3.2.3-2"
 
 [requires]
 python_version = "2.7"
