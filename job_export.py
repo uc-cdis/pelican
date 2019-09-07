@@ -1,9 +1,9 @@
-import sys
-from datetime import datetime
-
 import json
 import os
+import sys
 import tempfile
+from datetime import datetime
+
 from pfb.importers.gen3dict import _from_dict
 from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
@@ -11,7 +11,7 @@ from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
 from pelican.avro.export import export_avro
-from pelican.dictionary import get_all_paths_dfs, init_dictionary, get_tables
+from pelican.dictionary import full_traverse_path, init_dictionary, get_tables
 from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.s3 import s3upload_file
 
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     node_tables, edge_tables = get_tables(model)
     dd_tables = (node_tables, edge_tables)
-    traverse_order = get_all_paths_dfs(model, node)
+    traverse_order = full_traverse_path(model, node)
 
     # avro_schema = AvroSchema.from_dictionary(dictionary.schema)
     # schema = avro_schema.avro_schema

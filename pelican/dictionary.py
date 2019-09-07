@@ -1,3 +1,5 @@
+import itertools
+
 from dictionaryutils import DataDictionary, dictionary
 
 
@@ -28,8 +30,9 @@ def get_node_tables(model):
 def get_edge_tables(model):
     edges = get_edges(model)
     edge_tables = {
-        (model.Node.get_subclass_named(edge.__src_class__).label, model.Node.get_subclass_named(edge.__dst_class__).label):
-        edge.__tablename__
+        (model.Node.get_subclass_named(edge.__src_class__).label,
+         model.Node.get_subclass_named(edge.__dst_class__).label):
+            edge.__tablename__
         for edge in edges
     }
     return edge_tables
@@ -59,7 +62,7 @@ def get_edge_tables(model):
     edge_tables = {
         (model.Node.get_subclass_named(edge.__src_class__).label,
          model.Node.get_subclass_named(edge.__dst_class__).label):
-        edge.__tablename__
+            edge.__tablename__
         for edge in edges
     }
 
@@ -91,7 +94,27 @@ def get_all_paths_bfs(model, node_name):
     return r
 
 
-def get_all_paths_dfs(model, node_name):
+def get_upward_path(model, node_name):
+    stack, path = [node_name], []
+
+    while stack:
+        vertex = stack.pop()
+        if vertex in path:
+            continue
+        path.append(vertex)
+
+        node = model.Node.get_subclass(vertex).__name__
+        edges = model.Edge._get_edges_with_src(node)
+
+        for neighbor in [
+            model.Node.get_subclass_named(e.__dst_class__).get_label() for e in edges
+        ]:
+            stack.append(neighbor)
+
+    return path
+
+
+def get_downward_path(model, node_name):
     stack, path = [node_name], []
 
     while stack:
@@ -109,3 +132,10 @@ def get_all_paths_dfs(model, node_name):
             stack.append(neighbor)
 
     return path
+
+
+def full_traverse_path(model, node_name):
+    upward_path = zip(itertools.repeat(False), get_upward_path(model, node_name))
+    downward_path = zip(itertools.repeat(True), get_downward_path(model, node_name))[1:]
+
+    return upward_path + downward_path

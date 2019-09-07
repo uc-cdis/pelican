@@ -60,12 +60,15 @@ def export_avro(spark, pfb_file, dd_tables, traverse_order, case_ids, db_url, db
     current_ids[prev] = case_ids
     node_edges = defaultdict(list)
 
-    for k in traverse_order:
+    for way, k in traverse_order:
         v = it[k]
         for edge_table in v:
             dst_table_name = edge_label[edge_table]["dst"]
             src_table_name = edge_label[edge_table]["src"]
-            edges = get_ids_from_table(db, edge_table, current_ids[dst_table_name], "dst_id")
+            if way:
+                edges = get_ids_from_table(db, edge_table, current_ids[dst_table_name], "dst_id")
+            else:
+                edges = get_ids_from_table(db, edge_table, current_ids[src_table_name], "src_id")
 
             if not edges:
                 print('[WARNING]' + table_logs.format(edge_table))
@@ -75,17 +78,27 @@ def export_avro(spark, pfb_file, dd_tables, traverse_order, case_ids, db_url, db
                 lambda x: {
                     "src_id": x["src_id"],
                     "dst_id": x["dst_id"],
-                    "dst_name": dst_table_name,
                 }
             )
             print(table_logs.format(edge_table))
 
-            for e in edges.toLocalIterator():
-                node_edges[e["src_id"]].append(
-                    {"dst_id": e["dst_id"], "dst_name": e["dst_name"]}
-                )
+            if way:
+                for e in edges.toLocalIterator():
+                    node_edges[e["src_id"]].append(
+                        {"dst_id": e["dst_id"], "dst_name": dst_table_name}
+                    )
+            else:
+                for e in edges.toLocalIterator():
+                    node_edges[e["dst_id"]].append(
+                        {"dst_id": e["src_id"], "dst_name": src_table_name}
+                    )
 
-            current_ids[src_table_name].extend(node_edges.keys())
+            if way:
+                current_ids[src_table_name].extend(node_edges.keys())
+            else:
+                current_ids[dst_table_name].extend(node_edges.keys())
+
+            # print(current_ids)
 
         node_table = "node_" + k.replace("_", "")
         node_name = node_label[node_table]
@@ -95,7 +108,7 @@ def export_avro(spark, pfb_file, dd_tables, traverse_order, case_ids, db_url, db
         nodes = get_ids_from_table(db, node_table, current_ids[prev], "node_id")
 
         if not nodes:
-            print(table_logs.format(node_table))
+            print('[WARNING]' + table_logs.format(node_table))
             continue
 
         nodes = nodes.rdd.map(
