@@ -79,4 +79,4 @@ RUN pip install --no-cache-dir pipenv
 RUN pipenv install --system --deploy
 
 ENTRYPOINT [ "python" ]
-CMD [ "app.py" ]
+CMD [ "job_export.py" ]

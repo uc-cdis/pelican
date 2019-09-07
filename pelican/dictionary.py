@@ -19,6 +19,22 @@ def get_edges(model):
     return model.Edge.__subclasses__()
 
 
+def get_node_tables(model):
+    nodes = get_nodes(model)
+    node_tables = {str(node.label): node.__tablename__ for node in nodes}
+    return node_tables
+
+
+def get_edge_tables(model):
+    edges = get_edges(model)
+    edge_tables = {
+        (model.Node.get_subclass_named(edge.__src_class__).label, model.Node.get_subclass_named(edge.__dst_class__).label):
+        edge.__tablename__
+        for edge in edges
+    }
+    return edge_tables
+
+
 def get_tables(model):
     nodes = get_nodes(model)
     node_tables = {node.__tablename__: str(node.label) for node in nodes}
@@ -29,6 +45,21 @@ def get_tables(model):
             "src": model.Node.get_subclass_named(edge.__src_class__).label,
             "dst": model.Node.get_subclass_named(edge.__dst_class__).label,
         }
+        for edge in edges
+    }
+
+    return node_tables, edge_tables
+
+
+def get_edge_tables(model):
+    nodes = get_nodes(model)
+    node_tables = {node.__tablename__: str(node.label) for node in nodes}
+
+    edges = get_edges(model)
+    edge_tables = {
+        (model.Node.get_subclass_named(edge.__src_class__).label,
+         model.Node.get_subclass_named(edge.__dst_class__).label):
+        edge.__tablename__
         for edge in edges
     }
 

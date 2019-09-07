@@ -1,3 +1,5 @@
+import requests
+
 import boto3
 from botocore.exceptions import ClientError
 
@@ -28,3 +30,45 @@ def s3upload_file(bucket, key, aws_access_key_id, aws_secret_access_key, filepat
         return False
 
     return response
+
+
+def s3download_file(bucket, key, aws_access_key_id, aws_secret_access_key, fileobj=None, filepath=None):
+    """
+
+    :param bucket: the source bucket for the file download
+    :param aws_access_key_id:
+    :param aws_secret_access_key:
+    :param key: the name of the key in S3 for this download
+    :param fileobj: file-like object to download into
+    :param filepath: local path to the file
+    :return:
+    """
+    client = boto3.client(
+        "s3",
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+    )
+
+    assert (fileobj is None and filepath is not None) or (fileobj is not None and filepath is None),\
+        "both arguments can't be specified"
+
+    if fileobj:
+        client.download_fileobj(bucket, key, fileobj)
+    if filepath:
+        client.download_file(bucket, key, filepath)
+    return
+
+
+def download_file(url, fileobj=None, filepath=None):
+    r = requests.get(url)
+
+    assert (fileobj is None and filepath is not None) or (fileobj is not None and filepath is None), \
+        "both arguments can't be specified"
+
+    if fileobj:
+        fileobj.write(r.content)
+    if filepath:
+        with open(filepath, 'wb') as f:
+            f.write(r.content)
+
+    return

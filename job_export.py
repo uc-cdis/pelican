@@ -1,9 +1,9 @@
-import json
-import os
 import sys
-import tempfile
 from datetime import datetime
 
+import json
+import os
+import tempfile
 from pfb.importers.gen3dict import _from_dict
 from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
