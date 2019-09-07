@@ -4,12 +4,10 @@ from datetime import datetime
 
 
 def create_node_dict(node_id, node_name, values, edges):
-    inside = json.loads(values)
-
     node_dict = {
         "id": node_id,
         "name": node_name,
-        "object": inside,
+        "object": values,
         "relations": edges[node_id] if node_id in edges else [],
     }
 
@@ -36,39 +34,35 @@ def get_ids_from_table(db, table, ids, id_column):
     return data if data and data.first() else None
 
 
-def export_avro(spark, pfb_file, dd_tables, traverse_order, case_ids, db_url, db_user, db_pass, root_node):
+def export_avro(db, pfb_file, ddt, case_ids, root_node):
     pfb_file.open_mode = "a+b"
 
     start_time = datetime.now()
     print(start_time)
 
-    node_label, edge_label = dd_tables
-
-    db = spark.read.format("jdbc").options(
-        url=db_url, user=db_user, password=db_pass, driver="org.postgresql.Driver"
-    )
-
-    it = defaultdict(list)
-
-    for e, v in edge_label.items():
-        it[v["src"]].append(e)
+    it = ddt.get_edges_by_node()
 
     table_logs = "{:<40}"
     current_ids = defaultdict(list)
 
-    prev = root_node
-    current_ids[prev] = case_ids
+    current_ids[root_node] = case_ids
     node_edges = defaultdict(list)
 
-    for way, k in traverse_order:
-        v = it[k]
+    for way, node_name in ddt.full_traverse_path(root_node):
+        v = it[node_name]
         for edge_table in v:
-            dst_table_name = edge_label[edge_table]["dst"]
-            src_table_name = edge_label[edge_table]["src"]
             if way:
-                edges = get_ids_from_table(db, edge_table, current_ids[dst_table_name], "dst_id")
+                src, dst = "src", "dst"
             else:
-                edges = get_ids_from_table(db, edge_table, current_ids[src_table_name], "src_id")
+                src, dst = "dst", "src"
+
+            src_table_name = ddt.get_edge_labels_by_table()[edge_table][src]
+            dst_table_name = ddt.get_edge_labels_by_table()[edge_table][dst]
+
+            src += "_id"
+            dst += "_id"
+
+            edges = get_ids_from_table(db, edge_table, current_ids[dst_table_name], dst)
 
             if not edges:
                 print('[WARNING]' + table_logs.format(edge_table))
@@ -82,30 +76,16 @@ def export_avro(spark, pfb_file, dd_tables, traverse_order, case_ids, db_url, db
             )
             print(table_logs.format(edge_table))
 
-            if way:
-                for e in edges.toLocalIterator():
-                    node_edges[e["src_id"]].append(
-                        {"dst_id": e["dst_id"], "dst_name": dst_table_name}
-                    )
-            else:
-                for e in edges.toLocalIterator():
-                    node_edges[e["dst_id"]].append(
-                        {"dst_id": e["src_id"], "dst_name": src_table_name}
-                    )
+            for e in edges.toLocalIterator():
+                node_edges[e[src]].append(
+                    {"dst_id": e[dst], "dst_name": dst_table_name}
+                )
 
-            if way:
-                current_ids[src_table_name].extend(node_edges.keys())
-            else:
-                current_ids[dst_table_name].extend(node_edges.keys())
+            current_ids[src_table_name].extend(node_edges.keys())
 
-            # print(current_ids)
+        node_table = ddt.get_node_table_by_label()[node_name]
 
-        node_table = "node_" + k.replace("_", "")
-        node_name = node_label[node_table]
-
-        prev = k
-
-        nodes = get_ids_from_table(db, node_table, current_ids[prev], "node_id")
+        nodes = get_ids_from_table(db, node_table, current_ids[node_name], "node_id")
 
         if not nodes:
             print('[WARNING]' + table_logs.format(node_table))
@@ -113,7 +93,7 @@ def export_avro(spark, pfb_file, dd_tables, traverse_order, case_ids, db_url, db
 
         nodes = nodes.rdd.map(
             lambda x: create_node_dict(
-                x["node_id"], node_name, x["_props"], node_edges
+                x["node_id"], node_name, json.loads(x["_props"]), node_edges
             )
         )
         print(table_logs.format(node_table))

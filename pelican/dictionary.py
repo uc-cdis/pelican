@@ -1,4 +1,5 @@
 import itertools
+from collections import defaultdict
 
 from dictionaryutils import DataDictionary, dictionary
 
@@ -13,129 +14,105 @@ def init_dictionary(url):
     return d, md
 
 
-def get_nodes(model):
-    return model.Node.__subclasses__()
+class DataDictionaryTraversal:
+    def __init__(self, model):
+        self.model = model
 
+    def get_nodes(self):
+        return self.model.Node.__subclasses__()
 
-def get_edges(model):
-    return model.Edge.__subclasses__()
+    def get_edges(self):
+        return self.model.Edge.__subclasses__()
 
+    def get_node_table_by_label(self):
+        nodes = self.get_nodes()
+        node_tables = {str(node.label): node.__tablename__ for node in nodes}
+        return node_tables
 
-def get_node_tables(model):
-    nodes = get_nodes(model)
-    node_tables = {str(node.label): node.__tablename__ for node in nodes}
-    return node_tables
+    def get_node_label_by_table(self):
+        nodes = self.get_nodes()
+        node_tables = {node.__tablename__: str(node.label) for node in nodes}
+        return node_tables
 
-
-def get_edge_tables(model):
-    edges = get_edges(model)
-    edge_tables = {
-        (model.Node.get_subclass_named(edge.__src_class__).label,
-         model.Node.get_subclass_named(edge.__dst_class__).label):
-            edge.__tablename__
-        for edge in edges
-    }
-    return edge_tables
-
-
-def get_tables(model):
-    nodes = get_nodes(model)
-    node_tables = {node.__tablename__: str(node.label) for node in nodes}
-
-    edges = get_edges(model)
-    edge_tables = {
-        edge.__tablename__: {
-            "src": model.Node.get_subclass_named(edge.__src_class__).label,
-            "dst": model.Node.get_subclass_named(edge.__dst_class__).label,
+    def get_edge_table_by_labels(self):
+        edges = self.get_edges()
+        edge_tables = {
+            (self.model.Node.get_subclass_named(edge.__src_class__).label,
+             self.model.Node.get_subclass_named(edge.__dst_class__).label): edge.__tablename__ for edge in edges
         }
-        for edge in edges
-    }
+        return edge_tables
 
-    return node_tables, edge_tables
+    def get_edge_labels_by_table(self):
+        edges = self.get_edges()
+        edge_tables = {
+            edge.__tablename__: {
+                "src": self.model.Node.get_subclass_named(edge.__src_class__).label,
+                "dst": self.model.Node.get_subclass_named(edge.__dst_class__).label,
+            }
+            for edge in edges
+        }
+        return edge_tables
 
+    def get_edges_by_node(self):
+        edges = self.get_edges()
+        it = defaultdict(list)
 
-def get_edge_tables(model):
-    nodes = get_nodes(model)
-    node_tables = {node.__tablename__: str(node.label) for node in nodes}
+        for edge in edges:
+            it[self.model.Node.get_subclass_named(edge.__src_class__).label].append(edge.__tablename__)
 
-    edges = get_edges(model)
-    edge_tables = {
-        (model.Node.get_subclass_named(edge.__src_class__).label,
-         model.Node.get_subclass_named(edge.__dst_class__).label):
-            edge.__tablename__
-        for edge in edges
-    }
+        return it
 
-    return node_tables, edge_tables
+    def _get_bfs(self, node_name):
+        queue = [node_name]
 
+        visited = {}
 
-def get_all_paths_bfs(model, node_name):
-    queue = [node_name]
+        r = []
 
-    visited = {}
+        while queue:
+            s = queue.pop(0)
 
-    r = []
+            node = self.model.Node.get_subclass(s).__name__
+            edges = self.model.Edge._get_edges_with_dst(node)
 
-    while queue:
-        s = queue.pop(0)
+            r.append(s)
 
-        node = model.Node.get_subclass(s).__name__
-        edges = model.Edge._get_edges_with_dst(node)
+            for i in [
+                self.model.Node.get_subclass_named(e.__src_class__).get_label() for e in edges
+            ]:
+                if i not in visited:
+                    queue.append(i)
+                    visited[i] = True
 
-        r.append(s)
+        return r
 
-        for i in [
-            model.Node.get_subclass_named(e.__src_class__).get_label() for e in edges
-        ]:
-            if i not in visited:
-                queue.append(i)
-                visited[i] = True
+    def _get_dfs(self, node_name, source_edges, target_class):
+        stack, path = [node_name], []
 
-    return r
+        while stack:
+            vertex = stack.pop()
+            if vertex in path:
+                continue
+            path.append(vertex)
 
+            node = self.model.Node.get_subclass(vertex).__name__
+            edges = getattr(self.model.Edge, source_edges)(node)
 
-def get_upward_path(model, node_name):
-    stack, path = [node_name], []
+            for neighbor in [
+                self.model.Node.get_subclass_named(getattr(e, target_class)).get_label() for e in edges
+            ]:
+                stack.append(neighbor)
 
-    while stack:
-        vertex = stack.pop()
-        if vertex in path:
-            continue
-        path.append(vertex)
+        return path
 
-        node = model.Node.get_subclass(vertex).__name__
-        edges = model.Edge._get_edges_with_src(node)
+    def get_upward_path(self, node_name):
+        return self._get_dfs(node_name, "_get_edges_with_src", "__dst_class__")
 
-        for neighbor in [
-            model.Node.get_subclass_named(e.__dst_class__).get_label() for e in edges
-        ]:
-            stack.append(neighbor)
+    def get_downward_path(self, node_name):
+        return self._get_dfs(node_name, "_get_edges_with_dst", "__src_class__")
 
-    return path
+    def full_traverse_path(self, node_name):
+        upward_path = zip(itertools.repeat(False), self.get_upward_path(node_name))
+        downward_path = zip(itertools.repeat(True), self.get_downward_path(node_name))[1:]
 
-
-def get_downward_path(model, node_name):
-    stack, path = [node_name], []
-
-    while stack:
-        vertex = stack.pop()
-        if vertex in path:
-            continue
-        path.append(vertex)
-
-        node = model.Node.get_subclass(vertex).__name__
-        edges = model.Edge._get_edges_with_dst(node)
-
-        for neighbor in [
-            model.Node.get_subclass_named(e.__src_class__).get_label() for e in edges
-        ]:
-            stack.append(neighbor)
-
-    return path
-
-
-def full_traverse_path(model, node_name):
-    upward_path = zip(itertools.repeat(False), get_upward_path(model, node_name))
-    downward_path = zip(itertools.repeat(True), get_downward_path(model, node_name))[1:]
-
-    return upward_path + downward_path
+        return upward_path + downward_path

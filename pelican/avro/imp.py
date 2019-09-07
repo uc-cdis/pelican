@@ -33,7 +33,7 @@ def convert_to_edge(x, edge_tables):
                                                        "dst_id": i["dst_id"]}) for i in x["relations"]]
 
 
-def import_avro(spark, pfb_file, node_tables, edge_tables, db_url, db_user, db_pass):
+def import_avro(spark, pfb_file, ddt, db_url, db_user, db_pass):
     start_time = datetime.now()
     print(start_time)
 
@@ -78,17 +78,17 @@ def import_avro(spark, pfb_file, node_tables, edge_tables, db_url, db_user, db_p
             .map(lambda x: convert_to_node(x, _is_base64)) \
             .toDF() \
             .write \
-            .jdbc(url=db_url, table=node_tables[n], mode=mode, properties=properties)
+            .jdbc(url=db_url, table=ddt.get_node_label_by_table()[n], mode=mode, properties=properties)
 
     distinct_edges = rdd \
-        .flatMap(lambda x: convert_to_edge(x, edge_tables)) \
+        .flatMap(lambda x: convert_to_edge(x, ddt.get_edge_table_by_labels())) \
         .map(lambda x: x[0]) \
         .distinct() \
         .collect()
 
     for e in distinct_edges:
         rdd \
-            .flatMap(lambda x: convert_to_edge(x, edge_tables)) \
+            .flatMap(lambda x: convert_to_edge(x, ddt.get_edge_table_by_labels())) \
             .filter(lambda x: x[0] == e) \
             .toDF() \
             .write \

@@ -11,7 +11,7 @@ from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
 from pelican.avro.export import export_avro
-from pelican.dictionary import full_traverse_path, init_dictionary, get_tables
+from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.s3 import s3upload_file
 
@@ -26,8 +26,6 @@ if __name__ == "__main__":
 
     sys.stderr.write(str(case_ids))
 
-    dictionary_url = os.environ["DICTIONARY_URL"]
-
     with open("/peregrine-creds.json") as pelican_creds_file:
         peregrine_creds = json.load(pelican_creds_file)
 
@@ -37,15 +35,9 @@ if __name__ == "__main__":
     DB_USER = peregrine_creds["db_username"]
     DB_PASS = peregrine_creds["db_password"]
 
+    dictionary_url = os.environ["DICTIONARY_URL"]
     dictionary, model = init_dictionary(url=dictionary_url)
-
-    node_tables, edge_tables = get_tables(model)
-    dd_tables = (node_tables, edge_tables)
-    traverse_order = full_traverse_path(model, node)
-
-    # avro_schema = AvroSchema.from_dictionary(dictionary.schema)
-    # schema = avro_schema.avro_schema
-    # metadata = avro_schema.get_ontology_references()
+    ddt = DataDictionaryTraversal(model)
 
     conf = (
         SparkConf()
@@ -56,6 +48,10 @@ if __name__ == "__main__":
     )
 
     spark = SparkSession.builder.config(conf=conf).getOrCreate()
+
+    db = spark.read.format("jdbc").options(
+        url=DB_URL, user=DB_USER, password=DB_PASS, driver="org.postgresql.Driver"
+    )
 
     with tempfile.NamedTemporaryFile(mode="w+b", delete=False) as avro_output:
         with PFBWriter(avro_output) as pfb_file:
@@ -74,14 +70,10 @@ if __name__ == "__main__":
             with PFBWriter(avro_output) as pfb_file:
                 pfb_file.copy_schema(reader)
                 export_avro(
-                    spark,
+                    db,
                     pfb_file,
-                    dd_tables,
-                    traverse_order,
+                    ddt,
                     case_ids,
-                    DB_URL,
-                    DB_USER,
-                    DB_PASS,
                     node
                 )
 
