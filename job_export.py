@@ -10,7 +10,7 @@ from pfb.writer import PFBWriter
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
-from pelican.avro.export import export_avro
+from pelican.jobs import export_pfb_job
 from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.s3 import s3upload_file
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         with PFBReader(filename) as reader:
             with PFBWriter(avro_output) as pfb_file:
                 pfb_file.copy_schema(reader)
-                export_avro(
+                export_pfb_job(
                     db,
                     pfb_file,
                     ddt,

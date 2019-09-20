@@ -5,7 +5,7 @@ import tempfile
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
-from pelican.avro.imp import import_avro
+from pelican.jobs import import_pfb_job
 from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.s3 import download_file
 
@@ -45,4 +45,4 @@ if __name__ == "__main__":
         download_file(input_data_json["url"], fileobj=tmp)
         name = tmp.name
 
-    import_avro(spark, name, ddt, DB_URL, DB_USER, DB_PASS)
+    import_pfb_job(spark, name, ddt, DB_URL, DB_USER, DB_PASS)
