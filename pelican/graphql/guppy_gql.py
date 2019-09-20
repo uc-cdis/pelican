@@ -8,7 +8,7 @@ class GuppyGQL(object, BaseGQL):
 
     def _count(self, filters=None):
         self.url = "{}/{}".format(self.hostname, "guppy/graphql/")
-        query = "query ($filter: JSON) {{ _aggregation {{ {node}(filter: $filter, accessibility: all) {{ _totalCount }} }} }}".format(
+        query = "query ($filter: JSON) {{ _aggregation {{ {node}(filter: $filter, accessibility: accessible) {{ _totalCount }} }} }}".format(
             node=self.node
         )
         query_json = {"query": query}
