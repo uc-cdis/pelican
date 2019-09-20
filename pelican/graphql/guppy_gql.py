@@ -26,7 +26,8 @@ class GuppyGQL(object, BaseGQL):
             query = {
                 "type": self.node,
                 "fields": ["{}_id".format(self.node)],
-                "filters": filters
+                "filters": filters,
+                "accessibility": "accessible"
             }
             r = BaseGQL._execute(self, query)
 
@@ -34,7 +35,7 @@ class GuppyGQL(object, BaseGQL):
 
         else:
             self.url = "{}/{}".format(self.hostname, "guppy/graphql")
-            query = "query($filter: JSON) {{ {root}(first: 10000, filter: $filter) {{ {root}_id }} }}".format(
+            query = "query($filter: JSON) {{ {root}(first: 10000, filter: $filter, accessibility: accessible) {{ {root}_id }} }}".format(
                 root=self.node
             )
             query_json = {"query": query}
