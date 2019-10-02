@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 import tempfile
 from datetime import datetime
 
@@ -10,9 +9,9 @@ from pfb.writer import PFBWriter
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
-from pelican.jobs import export_pfb_job
 from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.graphql.guppy_gql import GuppyGQL
+from pelican.jobs import export_pfb_job
 from pelican.s3 import s3upload_file
 
 if __name__ == "__main__":
@@ -23,8 +22,6 @@ if __name__ == "__main__":
 
     gql = GuppyGQL(node=node, hostname="https://{}".format(hostname), access_token=access_token)
     case_ids = gql.execute(filters=input_data)
-
-    sys.stderr.write(str(case_ids))
 
     with open("/peregrine-creds.json") as pelican_creds_file:
         peregrine_creds = json.load(pelican_creds_file)

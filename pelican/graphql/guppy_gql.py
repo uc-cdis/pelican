@@ -1,3 +1,5 @@
+import json
+
 from base_gql import BaseGQL
 
 
@@ -26,9 +28,11 @@ class GuppyGQL(object, BaseGQL):
             query = {
                 "type": self.node,
                 "fields": ["{}_id".format(self.node)],
-                "filters": filters,
                 "accessibility": "accessible"
             }
+
+            query.update(json.loads(filters))
+
             r = BaseGQL._execute(self, query)
 
             return [item["{}_id".format(self.node)] for item in r]

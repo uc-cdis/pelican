@@ -50,9 +50,9 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node):
     current_ids = defaultdict(list)
 
     current_ids[root_node] = case_ids
-    node_edges = defaultdict(list)
 
-    for way, node_name in ddt.full_traverse_path(root_node):
+    for way, node_name in ddt.full_traverse_path(root_node, include_upward=False):
+        node_edges = defaultdict(list)
         v = it[node_name]
         for edge_table in v:
             if way:
@@ -60,16 +60,22 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node):
             else:
                 src, dst = "dst", "src"
 
-            src_table_name = ddt.get_edge_labels_by_table()[edge_table][src]
-            dst_table_name = ddt.get_edge_labels_by_table()[edge_table][dst]
+            src_label = ddt.get_edge_labels_by_table()[edge_table][src]
+            dst_label = ddt.get_edge_labels_by_table()[edge_table][dst]
 
             src += "_id"
             dst += "_id"
 
-            edges = get_ids_from_table(db, edge_table, current_ids[dst_table_name], dst)
+            select_ids = current_ids[dst_label]
+
+            if not select_ids:
+                print('[INFO] nothing to select from edge table: {}'.format(table_logs.format(edge_table)))
+                continue
+
+            edges = get_ids_from_table(db, edge_table, select_ids, dst)
 
             if not edges:
-                print('[WARNING]' + table_logs.format(edge_table))
+                print('[INFO] empty edge table: {}'.format(table_logs.format(edge_table)))
                 continue
 
             edges = edges.rdd.map(
@@ -82,17 +88,23 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node):
 
             for e in edges.toLocalIterator():
                 node_edges[e[src]].append(
-                    {"dst_id": e[dst], "dst_name": dst_table_name}
+                    {"dst_id": e[dst], "dst_name": dst_label}
                 )
 
-            current_ids[src_table_name].extend(node_edges.keys())
+            current_ids[src_label].extend(node_edges.keys())
 
         node_table = ddt.get_node_table_by_label()[node_name]
 
-        nodes = get_ids_from_table(db, node_table, current_ids[node_name], "node_id")
+        select_ids = current_ids[node_name]
+
+        if not select_ids:
+            print('[INFO] nothing to select from node table: {}'.format(table_logs.format(node_table)))
+            continue
+
+        nodes = get_ids_from_table(db, node_table, select_ids, "node_id")
 
         if not nodes:
-            print('[WARNING]' + table_logs.format(node_table))
+            print('[INFO] empty node table: {}'.format(table_logs.format(node_table)))
             continue
 
         nodes = nodes.rdd.map(
