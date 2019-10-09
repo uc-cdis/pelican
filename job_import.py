@@ -38,6 +38,8 @@ if __name__ == "__main__":
             .set("spark.executor.memory", "10g")
             .setAppName("pelican")
     )
+    
+    print("hello")
 
     spark = SparkSession.builder.config(conf=conf).getOrCreate()
 
