@@ -10,7 +10,6 @@ from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.s3 import download_file
 
 if __name__ == "__main__":
-    node = os.environ["ROOT_NODE"]
     access_token = os.environ["ACCESS_TOKEN"]
     hostname = os.environ["GEN3_HOSTNAME"]
     input_data = os.environ["INPUT_DATA"]
