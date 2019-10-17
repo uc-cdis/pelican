@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     spark = SparkSession.builder.config(conf=conf).getOrCreate()
 
-    with tempfile.TemporaryFile() as tmp:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
         download_file(input_data_json["url"], fileobj=tmp)
         name = tmp.name
 
