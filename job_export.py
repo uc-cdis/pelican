@@ -71,7 +71,8 @@ if __name__ == "__main__":
                     pfb_file,
                     ddt,
                     case_ids,
-                    node
+                    node,
+                    True  # include upward nodes: project, program etc
                 )
 
     with open("/pelican-creds.json") as pelican_creds_file:

@@ -38,7 +38,7 @@ def get_ids_from_table(db, table, ids, id_column):
     return data if data and data.first() else None
 
 
-def export_pfb_job(db, pfb_file, ddt, case_ids, root_node):
+def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, include_upward=False):
     pfb_file.open_mode = "a+b"
 
     start_time = datetime.now()
@@ -51,7 +51,7 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node):
 
     current_ids[root_node] = case_ids
 
-    for way, node_name in ddt.full_traverse_path(root_node, include_upward=False):
+    for way, node_name in ddt.full_traverse_path(root_node, include_upward=include_upward):
         node_edges = defaultdict(list)
         v = it[node_name]
         for edge_table in v:
