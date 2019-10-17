@@ -18,14 +18,14 @@ if __name__ == "__main__":
 
     dictionary_url = os.environ["DICTIONARY_URL"]
 
-    with open("/peregrine-creds.json") as pelican_creds_file:
-        peregrine_creds = json.load(pelican_creds_file)
+    with open("/sheepdog-creds.json") as pelican_creds_file:
+        sheepdog_creds = json.load(pelican_creds_file)
 
     DB_URL = "jdbc:postgresql://{}/{}".format(
-        peregrine_creds["db_host"], peregrine_creds["db_database"]
+        sheepdog_creds["db_host"], sheepdog_creds["db_database"]
     )
-    DB_USER = peregrine_creds["db_username"]
-    DB_PASS = peregrine_creds["db_password"]
+    DB_USER = sheepdog_creds["db_username"]
+    DB_PASS = sheepdog_creds["db_password"]
 
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
