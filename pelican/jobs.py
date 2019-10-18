@@ -189,6 +189,7 @@ def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
         .collect()
 
     for n in distinct_nodes:
+        print(n)
         rdd \
             .filter(lambda x: x["name"] == n) \
             .map(lambda x: convert_to_node(x, _is_base64)) \
@@ -196,16 +197,20 @@ def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
             .write \
             .jdbc(url=db_url, table=ddt.get_node_table_by_label()[n], mode=mode, properties=properties)
 
+    tmp = ddt.get_edge_table_by_labels()
+
     distinct_edges = rdd \
-        .flatMap(lambda x: convert_to_edge(x, ddt.get_edge_table_by_labels())) \
+        .flatMap(lambda x: convert_to_edge(x, tmp)) \
         .map(lambda x: x[0]) \
         .distinct() \
         .collect()
 
     for e in distinct_edges:
+        print(e)
         rdd \
-            .flatMap(lambda x: convert_to_edge(x, ddt.get_edge_table_by_labels())) \
+            .flatMap(lambda x: convert_to_edge(x, tmp)) \
             .filter(lambda x: x[0] == e) \
+            .map(lambda x: x[1]) \
             .toDF() \
             .write \
             .jdbc(url=db_url, table=e, mode=mode, properties=properties)
