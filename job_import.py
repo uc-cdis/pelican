@@ -10,7 +10,6 @@ from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.s3 import download_file
 
 if __name__ == "__main__":
-    node = os.environ["ROOT_NODE"]
     access_token = os.environ["ACCESS_TOKEN"]
     hostname = os.environ["GEN3_HOSTNAME"]
     input_data = os.environ["INPUT_DATA"]
@@ -19,14 +18,14 @@ if __name__ == "__main__":
 
     dictionary_url = os.environ["DICTIONARY_URL"]
 
-    with open("/peregrine-creds.json") as pelican_creds_file:
-        peregrine_creds = json.load(pelican_creds_file)
+    with open("/sheepdog-creds.json") as pelican_creds_file:
+        sheepdog_creds = json.load(pelican_creds_file)
 
     DB_URL = "jdbc:postgresql://{}/{}".format(
-        peregrine_creds["db_host"], peregrine_creds["db_database"]
+        sheepdog_creds["db_host"], sheepdog_creds["db_database"]
     )
-    DB_USER = peregrine_creds["db_username"]
-    DB_PASS = peregrine_creds["db_password"]
+    DB_USER = sheepdog_creds["db_username"]
+    DB_PASS = sheepdog_creds["db_password"]
 
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
@@ -41,7 +40,7 @@ if __name__ == "__main__":
 
     spark = SparkSession.builder.config(conf=conf).getOrCreate()
 
-    with tempfile.TemporaryFile() as tmp:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
         download_file(input_data_json["url"], fileobj=tmp)
         name = tmp.name
 
