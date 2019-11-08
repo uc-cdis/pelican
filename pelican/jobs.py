@@ -93,6 +93,12 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, include_upward=False)
 
             current_ids[src_label].extend(node_edges.keys())
 
+            if not way:
+                for e in edges.toLocalIterator():
+                    node_edges[e[dst]].append(
+                        {"dst_id": e[src], "dst_name": src_label}
+                    )
+
         node_table = ddt.get_node_table_by_label()[node_name]
 
         select_ids = current_ids[node_name]
