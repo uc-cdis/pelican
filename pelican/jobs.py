@@ -4,7 +4,7 @@ from datetime import datetime
 from io import BytesIO
 
 from fastavro import reader
-from pfb.base import handle_schema_field_b64, is_enum, b64_decode
+from pfb.base import handle_schema_field_unicode, is_enum, decode_enum
 
 
 def create_node_dict(node_id, node_name, values, edges):
@@ -133,7 +133,7 @@ def convert_to_node(x, is_base64):
     to_update = {}
     for name, value in obj.iteritems():
         if value and is_base64[x["name"]][name]:
-            to_update[name] = b64_decode(value)
+            to_update[name] = decode_enum(value)
 
     obj.update(to_update)
 
@@ -174,7 +174,7 @@ def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
             for node in it:
                 s.append(node)
                 for field in node["fields"]:
-                    handle_schema_field_b64(field, encode=False)
+                    handle_schema_field_unicode(field, encode=False)
 
     _is_base64 = {}
 
