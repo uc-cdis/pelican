@@ -16,7 +16,7 @@ pyspark = "*"
 psutil = "*"
 boto3 = "*"
 gdcdatamodel = "*"
-psqlgraph = "*"
+psqlgraph = "==2.0.2"
 functools32 = "==3.2.3-2"
 
 [requires]
