@@ -8,7 +8,6 @@ pyspark-stubs = "*"
 
 [packages]
 pypfb = {ref = "0.3.1",git = "https://github.com/uc-cdis/pypfb.git",editable = true}
-pypfb = {ref = "0.3.0",git = "https://github.com/uc-cdis/pypfb.git",editable = true}
 dictionaryutils = "==2.0.11"
 fastavro = "*"
 requests = "*"
