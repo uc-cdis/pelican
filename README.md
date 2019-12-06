@@ -2,7 +2,7 @@
 
 Provides a Docker images with Sower jobs to export and import PFB in Gen3.
 
-## PFB Export
+## PFB Export [![Docker Repository on Quay](https://quay.io/repository/cdis/pelican-export/status "Docker Repository on Quay")](https://quay.io/repository/cdis/pelican-export)
 
 `pelican-export` job takes Guppy query and users access token as an input. Then it queries Guppy for the list of cases for that query.
 
@@ -93,7 +93,7 @@ The `pelican-export` job should have the following environment variables and mou
 
 <a href="https://www.lucidchart.com/publicSegments/view/78ed9fc6-6ab4-4035-8bda-9bd4269cce05/image.png"><img src="https://www.lucidchart.com/publicSegments/view/78ed9fc6-6ab4-4035-8bda-9bd4269cce05/image.png" width="600" /></a>
 
-## PFB Import
+## PFB Import [![Docker Repository on Quay](https://quay.io/repository/cdis/pelican-import/status "Docker Repository on Quay")](https://quay.io/repository/cdis/pelican-import)
 
 `pelican-import` job now used only for restoring PFB into the clean database.
 
