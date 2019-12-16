@@ -23,70 +23,72 @@ The `pelican-export` job should have the following environment variables and mou
     * `pelican-creds-volume` - the secret from `kube-setup-pelicanjob`
     * `peregrine-creds-volume` - the secret to access sheepdog database.
 
-    {
-      "name": "pelican-export",
-      "action": "export",
-      "container": {
-        "name": "job-task",
-        "image": "quay.io/cdis/pelican-export:master",
-        "pull_policy": "Always",
-        "env": [
-          {
-            "name": "DICTIONARY_URL",
-            "valueFrom": {
-              "configMapKeyRef": {
-                "name": "manifest-global",
-                "key": "dictionary_url"
-              }
-            }
-          },
-          {
-            "name": "GEN3_HOSTNAME",
-            "valueFrom": {
-              "configMapKeyRef": {
-                "name": "manifest-global",
-                "key": "hostname"
-              }
-            }
-          },
-          {
-            "name": "ROOT_NODE",
-            "value": "subject"
-          }
-        ],
-        "volumeMounts": [
-          {
-            "name": "pelican-creds-volume",
-            "readOnly": true,
-            "mountPath": "/pelican-creds.json",
-            "subPath": "config.json"
-          },
-          {
-            "name": "peregrine-creds-volume",
-            "readOnly": true,
-            "mountPath": "/peregrine-creds.json",
-            "subPath": "creds.json"
-          }
-        ],
-        "cpu-limit": "1",
-        "memory-limit": "12Gi"
-      },
-      "volumes": [
-        {
-          "name": "pelican-creds-volume",
-          "secret": {
-            "secretName": "pelicanservice-g3auto"
-          }
-        },
-        {
-          "name": "peregrine-creds-volume",
-          "secret": {
-            "secretName": "peregrine-creds"
+```
+{
+  "name": "pelican-export",
+  "action": "export",
+  "container": {
+    "name": "job-task",
+    "image": "quay.io/cdis/pelican-export:master",
+    "pull_policy": "Always",
+    "env": [
+      {
+        "name": "DICTIONARY_URL",
+        "valueFrom": {
+          "configMapKeyRef": {
+            "name": "manifest-global",
+            "key": "dictionary_url"
           }
         }
-      ],
-      "restart_policy": "Never"
+      },
+      {
+        "name": "GEN3_HOSTNAME",
+        "valueFrom": {
+          "configMapKeyRef": {
+            "name": "manifest-global",
+            "key": "hostname"
+          }
+        }
+      },
+      {
+        "name": "ROOT_NODE",
+        "value": "subject"
+      }
+    ],
+    "volumeMounts": [
+      {
+        "name": "pelican-creds-volume",
+        "readOnly": true,
+        "mountPath": "/pelican-creds.json",
+        "subPath": "config.json"
+      },
+      {
+        "name": "peregrine-creds-volume",
+        "readOnly": true,
+        "mountPath": "/peregrine-creds.json",
+        "subPath": "creds.json"
+      }
+    ],
+    "cpu-limit": "1",
+    "memory-limit": "12Gi"
+  },
+  "volumes": [
+    {
+      "name": "pelican-creds-volume",
+      "secret": {
+        "secretName": "pelicanservice-g3auto"
+      }
+    },
+    {
+      "name": "peregrine-creds-volume",
+      "secret": {
+        "secretName": "peregrine-creds"
+      }
     }
+  ],
+  "restart_policy": "Never"
+}
+```
 </details>
 
 ### Architecture
@@ -111,54 +113,56 @@ The manifest configuration should include:
 * Mounts:
     * `sheepdog-creds-volume` - the secret with write access to the sheepdog database.
 
-    {
-      "name": "pelican-import",
-      "action": "import",
-      "container": {
-        "name": "job-task",
-        "image": "quay.io/cdis/pelican-import:master",
-        "pull_policy": "Always",
-        "env": [
-          {
-            "name": "DICTIONARY_URL",
-            "valueFrom": {
-              "configMapKeyRef": {
-                "name": "manifest-global",
-                "key": "dictionary_url"
-              }
-            }
-          },
-          {
-            "name": "GEN3_HOSTNAME",
-            "valueFrom": {
-              "configMapKeyRef": {
-                "name": "manifest-global",
-                "key": "hostname"
-              }
-            }
-          }
-        ],
-        "volumeMounts": [
-          {
-            "name": "sheepdog-creds-volume",
-            "readOnly": true,
-            "mountPath": "/sheepdog-creds.json",
-            "subPath": "creds.json"
-          }
-        ],
-        "cpu-limit": "1",
-        "memory-limit": "4Gi"
-      },
-      "volumes": [
-        {
-          "name": "sheepdog-creds-volume",
-          "secret": {
-            "secretName": "sheepdog-creds"
+```
+{
+  "name": "pelican-import",
+  "action": "import",
+  "container": {
+    "name": "job-task",
+    "image": "quay.io/cdis/pelican-import:master",
+    "pull_policy": "Always",
+    "env": [
+      {
+        "name": "DICTIONARY_URL",
+        "valueFrom": {
+          "configMapKeyRef": {
+            "name": "manifest-global",
+            "key": "dictionary_url"
           }
         }
-      ],
-      "restart_policy": "Never"
+      },
+      {
+        "name": "GEN3_HOSTNAME",
+        "valueFrom": {
+          "configMapKeyRef": {
+            "name": "manifest-global",
+            "key": "hostname"
+          }
+        }
+      }
+    ],
+    "volumeMounts": [
+      {
+        "name": "sheepdog-creds-volume",
+        "readOnly": true,
+        "mountPath": "/sheepdog-creds.json",
+        "subPath": "creds.json"
+      }
+    ],
+    "cpu-limit": "1",
+    "memory-limit": "4Gi"
+  },
+  "volumes": [
+    {
+      "name": "sheepdog-creds-volume",
+      "secret": {
+        "secretName": "sheepdog-creds"
+      }
     }
+  ],
+  "restart_policy": "Never"
+}
+```
 </details>
 
 ### Architecture
