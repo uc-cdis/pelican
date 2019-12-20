@@ -51,6 +51,8 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, include_upward=False)
 
     current_ids[root_node] = case_ids
 
+    nodes_to_write = []
+
     for way, node_name in ddt.full_traverse_path(root_node, include_upward=include_upward):
         node_edges = defaultdict(list)
         v = it[node_name]
@@ -120,7 +122,12 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, include_upward=False)
         )
         print(table_logs.format(node_table))
 
-        pfb_file.write(nodes.toLocalIterator(), metadata=False)
+        if not way:
+            nodes_to_write = list(nodes.toLocalIterator()) + nodes_to_write
+        else:
+            nodes_to_write = nodes_to_write + list(nodes.toLocalIterator())
+            pfb_file.write(nodes_to_write, metadata=False)
+            nodes_to_write = []
 
     time_elapsed = datetime.now() - start_time
     print("Elapsed time: {}".format(time_elapsed))
