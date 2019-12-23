@@ -122,6 +122,10 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, include_upward=False)
         )
         print(table_logs.format(node_table))
 
+        # ensure the topological order for upward nodes:
+        # Example:
+        #   project -> program -> study -> subject
+        # this will postpone the writing of the upward nodes until the first downward node
         if not way:
             nodes_to_write = list(nodes.toLocalIterator()) + nodes_to_write
         else:
