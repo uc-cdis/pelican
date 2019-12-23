@@ -7,7 +7,7 @@ class BaseGQL:
         self.hostname = hostname
         self.url = None
         self.access_token = access_token
-        self.headers = {"Authorization": "Bearer {}".format(self.access_token)}
+        self.headers = {"Authorization": f"Bearer {self.access_token}"}
 
     def execute(self, filters=None):
         raise NotImplementedError
@@ -18,4 +18,4 @@ class BaseGQL:
         if r.status_code == 200:
             return r.json()
         else:
-            raise Exception("Query failed with {}.\n{}".format(r.status_code, query))
+            raise Exception(f"Query failed with {r.status_code}.\n{query}")

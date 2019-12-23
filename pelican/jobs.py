@@ -93,7 +93,7 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, extra_nodes, include_
                     {"dst_id": e[dst], "dst_name": dst_label}
                 )
 
-            current_ids[src_label].extend(node_edges.keys())
+            current_ids[src_label].extend(list(node_edges.keys()))
 
             if not way:
                 for e in edges.toLocalIterator():
@@ -142,7 +142,7 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, extra_nodes, include_
 def convert_to_node(x, is_base64):
     obj = x["object"]
     to_update = {}
-    for name, value in obj.iteritems():
+    for name, value in obj.items():
         if value and is_base64[x["name"]][name]:
             to_update[name] = decode_enum(value)
 
