@@ -19,7 +19,7 @@ def create_node_dict(node_id, node_name, values, edges):
     return node_dict
 
 
-def split_by_n(input_list, n=1000):
+def split_by_n(input_list, n=10000):
     return [input_list[x:x + n] for x in range(0, len(input_list), n)]
 
 
@@ -29,6 +29,7 @@ def get_ids_from_table(db, table, ids, id_column):
     for ids_chunk in split_by_n(ids):
         current_chunk_data = db \
             .option("query", "SELECT * FROM {} WHERE {} IN ('{}')".format(table, id_column, "','".join(ids_chunk))) \
+            .option("fetchsize", "10000") \
             .load()
 
         if data:
