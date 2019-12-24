@@ -1,4 +1,5 @@
 import json
+from itertools import chain
 from collections import defaultdict
 from datetime import datetime
 from io import BytesIO
@@ -127,9 +128,9 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, extra_nodes, include_
         #   project -> program -> study -> subject
         # this will postpone the writing of the upward nodes until the first downward node
         if not way:
-            nodes_to_write = list(nodes.toLocalIterator()) + nodes_to_write
+            nodes_to_write = chain(nodes.toLocalIterator(), nodes_to_write)
         else:
-            nodes_to_write = nodes_to_write + list(nodes.toLocalIterator())
+            nodes_to_write = chain(nodes_to_write, nodes.toLocalIterator())
             pfb_file.write(nodes_to_write, metadata=False)
             nodes_to_write = []
 
