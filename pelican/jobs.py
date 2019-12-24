@@ -136,7 +136,7 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, extra_nodes, include_
             nodes_to_write = []
 
     time_elapsed = datetime.now() - start_time
-    print("Elapsed time: {}".format(time_elapsed))
+    print(f"Elapsed time: {time_elapsed}")
 
     return
 
