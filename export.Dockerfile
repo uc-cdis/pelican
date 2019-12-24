@@ -70,5 +70,7 @@ RUN pipenv install --system --deploy
 
 COPY . /pelican
 
+ENV PYTHONUNBUFFERED=1
+
 ENTRYPOINT [ "python" ]
 CMD [ "job_export.py" ]
