@@ -159,6 +159,23 @@ def convert_to_node(x, is_base64):
     return r
 
 
+def transaction_log(x, email):
+    obj = json.loads(x["_props"])
+    r = {
+        "submitter": email,
+        "role": "update",
+        "program": "",
+        "project": "",
+        "committed_by": 0,
+        "is_dry_run": False,
+        "state": "SUCCEEDED",
+        "closed": False,
+        "created_datetime": x["created"],
+        "canonical_json": json.dumps(obj)
+    }
+    return r
+
+
 def convert_to_edge(x, edge_tables):
     return [(edge_tables[(x["name"], i["dst_name"])], {"created": datetime.now(),
                                                        "acl": json.dumps({}),
@@ -174,7 +191,7 @@ def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
 
     properties = {"user": db_user, "password": db_pass, "driver": "org.postgresql.Driver", "stringtype": "unspecified"}
 
-    with open(pfb_file) as f:
+    with open(pfb_file, "r+b") as f:
         avro_reader = reader(f)
         schema = avro_reader.writer_schema
 
@@ -215,6 +232,14 @@ def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
             .toDF() \
             .write \
             .jdbc(url=db_url, table=ddt.get_node_table_by_label()[n], mode=mode, properties=properties)
+
+        rdd \
+            .filter(lambda x: x["name"] == n) \
+            .map(lambda x: convert_to_node(x, _is_base64)) \
+            .map(lambda x: transaction_log(x, "")) \
+            .toDF() \
+            .write \
+            .jdbc(url=db_url, table="transaction_logs", mode=mode, properties=properties)
 
     tmp = ddt.get_edge_table_by_labels()
 
