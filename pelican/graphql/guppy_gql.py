@@ -8,39 +8,54 @@ class GuppyGQL(BaseGQL):
         super().__init__(node, hostname, access_token)
 
     def _count(self, filters=None):
-        self.url = f"{self.hostname}/guppy/graphql/"
-        query = f"query ($filter: JSON) {{ _aggregation {{ {self.node}(filter: $filter, accessibility: accessible) {{ _totalCount }} }} }}"
+        self.url = f"{self.hostname}/guppy/graphql"
+        query = f"query($filter: JSON) {{ _aggregation {{ {self.node}(filter: $filter, accessibility: accessible) {{ _totalCount }} }} }}"
         query_json = {"query": query}
         if filters:
             query_json["variables"] = filters
 
         r = BaseGQL._execute(self, query_json)
-        count = r["data"]["_aggregation"][self.node]["_totalCount"]
+        try:
+            count = r["data"]["_aggregation"][self.node]["_totalCount"]
+        except KeyError:
+            count = 0
         return count
 
-    def execute(self, filters=None):
-        if self._count(filters) > 10000:
-            print("fallback to /download endpoint")
-            self.url = f"{self.hostname}/guppy/download"
-            query = {
-                "type": self.node,
-                "fields": [f"{self.node}_id"],
-                "accessibility": "accessible"
-            }
-
+    def _download_endpoint(self, filters=None):
+        print("fallback to /download endpoint")
+        self.url = f"{self.hostname}/guppy/download"
+        query = {
+            "type": self.node,
+            "fields": [f"{self.node}_id"],
+            "accessibility": "accessible"
+        }
+        if filters:
             query.update(json.loads(filters))
+        r = BaseGQL._execute(self, query)
+        return r
 
-            r = BaseGQL._execute(self, query)
+    def _graphql_endpoint(self, filters=None):
+        self.url = f"{self.hostname}/guppy/graphql"
+        query = f"query($filter: JSON) {{ {self.node}(first: 10000, filter: $filter, accessibility: accessible) {{ {self.node}_id }} }}"
+        query_json = {"query": query}
+        if filters:
+            query_json["variables"] = filters
+        r = BaseGQL._execute(self, query_json)
+        try:
+            r = r["data"][self.node]
+        except KeyError:
+            r = []
+        return r
 
-            return [item[f"{self.node}_id"] for item in r]
-
-        else:
-            self.url = f"{self.hostname}/guppy/graphql"
-            query = f"query($filter: JSON) {{ {self.node}(first: 10000, filter: $filter, accessibility: accessible) {{ {self.node}_id }} }}"
-            query_json = {"query": query}
-            if filters:
-                query_json["variables"] = filters
-
-            r = BaseGQL._execute(self, query_json)
-            ids = [item[f"{self.node}_id"] for item in r["data"][self.node]]
-            return ids
+    def execute(self, filters=None):
+        count = self._count(filters)
+        # Elasticsearch has a default limitation of 10000 for search results
+        # https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-body.html#request-body-search-from-size
+        # therefore, Pelican will use Guppy 'download' endpoint
+        guppy_max_size = 10000
+        r = self._download_endpoint(filters) if count > guppy_max_size else self._graphql_endpoint(filters)
+        try:
+            ids = [item[f"{self.node}_id"] for item in r]
+        except KeyError:
+            ids = []
+        return ids
