@@ -111,12 +111,16 @@ class DataDictionaryTraversal:
     def get_downward_path(self, node_name):
         return self._get_dfs(node_name, "_get_edges_with_dst", "__src_class__")
 
-    def full_traverse_path(self, node_name, include_upward=False):
+    def full_traverse_path(self, node_name, extra_nodes=None, include_upward=False):
         if include_upward:
-            upward_path = zip(itertools.repeat(False), self.get_upward_path(node_name))
-            downward_path = zip(itertools.repeat(True), self.get_downward_path(node_name))[1:]
+            upward_path = list(zip(itertools.repeat(False), self.get_upward_path(node_name)))
+            downward_path = list(zip(itertools.repeat(True), self.get_downward_path(node_name)))[1:]
+            if extra_nodes:
+                path = upward_path + list(zip(itertools.repeat(True), extra_nodes)) + downward_path
+            else:
+                path = upward_path + downward_path
         else:
-            upward_path = []
-            downward_path = zip(itertools.repeat(True), self.get_downward_path(node_name))
+            downward_path = list(zip(itertools.repeat(True), self.get_downward_path(node_name)))
+            path = downward_path
 
-        return upward_path + downward_path
+        return path
