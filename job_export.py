@@ -36,6 +36,11 @@ if __name__ == "__main__":
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
 
+    if "gtex" in dictionary_url:
+        extra_nodes = ["reference_file", "reference_file_index"]
+    else:
+        extra_nodes = None
+
     conf = (
         SparkConf()
             .set("spark.jars", os.environ["POSTGRES_JAR_PATH"])
@@ -72,6 +77,7 @@ if __name__ == "__main__":
                     ddt,
                     case_ids,
                     node,
+                    extra_nodes,
                     True  # include upward nodes: project, program etc
                 )
 
