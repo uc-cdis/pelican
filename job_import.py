@@ -33,8 +33,8 @@ if __name__ == "__main__":
     conf = (
         SparkConf()
             .set("spark.jars", os.environ["POSTGRES_JAR_PATH"])
-            .set("spark.driver.memory", "4g")
-            .set("spark.executor.memory", "1g")
+            .set("spark.driver.memory", "10g")
+            .set("spark.executor.memory", "10g")
             .setAppName("pelican")
     )
 
