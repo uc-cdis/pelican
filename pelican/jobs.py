@@ -1,4 +1,5 @@
 import json
+from itertools import chain
 from collections import defaultdict
 from datetime import datetime
 from io import BytesIO
@@ -18,7 +19,7 @@ def create_node_dict(node_id, node_name, values, edges):
     return node_dict
 
 
-def split_by_n(input_list, n=1000):
+def split_by_n(input_list, n=10000):
     return [input_list[x:x + n] for x in range(0, len(input_list), n)]
 
 
@@ -28,6 +29,7 @@ def get_ids_from_table(db, table, ids, id_column):
     for ids_chunk in split_by_n(ids):
         current_chunk_data = db \
             .option("query", "SELECT * FROM {} WHERE {} IN ('{}')".format(table, id_column, "','".join(ids_chunk))) \
+            .option("fetchsize", "10000") \
             .load()
 
         if data:
@@ -93,7 +95,7 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, extra_nodes, include_
                     {"dst_id": e[dst], "dst_name": dst_label}
                 )
 
-            current_ids[src_label].extend(node_edges.keys())
+            current_ids[src_label].extend(list(node_edges.keys()))
 
             if not way:
                 for e in edges.toLocalIterator():
@@ -127,14 +129,14 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, extra_nodes, include_
         #   project -> program -> study -> subject
         # this will postpone the writing of the upward nodes until the first downward node
         if not way:
-            nodes_to_write = list(nodes.toLocalIterator()) + nodes_to_write
+            nodes_to_write = chain(nodes.toLocalIterator(), nodes_to_write)
         else:
-            nodes_to_write = nodes_to_write + list(nodes.toLocalIterator())
+            nodes_to_write = chain(nodes_to_write, nodes.toLocalIterator())
             pfb_file.write(nodes_to_write, metadata=False)
             nodes_to_write = []
 
     time_elapsed = datetime.now() - start_time
-    print("Elapsed time: {}".format(time_elapsed))
+    print(f"Elapsed time: {time_elapsed}")
 
     return
 
@@ -142,7 +144,7 @@ def export_pfb_job(db, pfb_file, ddt, case_ids, root_node, extra_nodes, include_
 def convert_to_node(x, is_base64):
     obj = x["object"]
     to_update = {}
-    for name, value in obj.iteritems():
+    for name, value in obj.items():
         if value and is_base64[x["name"]][name]:
             to_update[name] = decode_enum(value)
 

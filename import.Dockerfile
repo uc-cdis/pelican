@@ -1,47 +1,23 @@
-FROM python:2-stretch
+FROM python:3.7-stretch
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    SQOOP_VERSION="1.4.7" \
-    HADOOP_VERSION="3.2.0" \
-    ES_HADOOP_VERSION="6.6.1" \
-    POSTGRES_JAR_VERSION="42.2.5"
+ENV DEBIAN_FRONTEND=noninteractive
 
-ENV SQOOP_INSTALLATION_URL="http://archive.apache.org/dist/sqoop/${SQOOP_VERSION}/sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz" \
-    HADOOP_INSTALLATION_URL="http://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz" \
-    ES_HADOOP_INSTALLATION_URL="https://artifacts.elastic.co/downloads/elasticsearch-hadoop/elasticsearch-hadoop-${ES_HADOOP_VERSION}.zip"\
-    SQOOP_HOME="/sqoop" \
-    HADOOP_HOME="/hadoop" \
-    ES_HADOOP_HOME="/es-hadoop" \
-    JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64/" \
-    POSTGRES_JAR_URL="https://jdbc.postgresql.org/download/postgresql-${POSTGRES_JAR_VERSION}.jar"
-
-RUN mkdir -p /usr/share/man/man1
-RUN mkdir -p /usr/share/man/man7
+#RUN mkdir -p /usr/share/man/man1
+#RUN mkdir -p /usr/share/man/man7
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     openjdk-8-jdk-headless \
-    # dependency for pyscopg2 - which is dependency for sqlalchemy postgres engine
+    # dependency for pyscopg2
     libpq-dev \
     postgresql-client \
     wget \
     unzip \
-    git \
-    # dependency for cryptography
-    libffi-dev \
-    # dependency for cryptography
-    libssl-dev \
-    vim \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget ${SQOOP_INSTALLATION_URL} \
-    && mkdir -p $SQOOP_HOME \
-    && tar -xvf sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz -C ${SQOOP_HOME} --strip-components 1 \
-    && rm sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz \
-    && rm -rf $SQOOP_HOME/docs
-
-RUN wget ${POSTGRES_JAR_URL} -O $SQOOP_HOME/lib/postgresql-${POSTGRES_JAR_VERSION}.jar
+ENV HADOOP_VERSION="3.2.1"
+ENV HADOOP_HOME="/hadoop" \
+    HADOOP_INSTALLATION_URL="http://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz"
 
 RUN wget ${HADOOP_INSTALLATION_URL} \
     && mkdir -p $HADOOP_HOME \
@@ -49,34 +25,52 @@ RUN wget ${HADOOP_INSTALLATION_URL} \
     && rm hadoop-${HADOOP_VERSION}.tar.gz \
     && rm -rf $HADOOP_HOME/share/doc
 
-RUN wget ${ES_HADOOP_INSTALLATION_URL} \
-    && mkdir -p $ES_HADOOP_HOME \
-    && unzip elasticsearch-hadoop-${ES_HADOOP_VERSION}.zip -d ${ES_HADOOP_HOME} \
-    && rm elasticsearch-hadoop-${ES_HADOOP_VERSION}.zip
+ENV SQOOP_VERSION="1.4.7"
+ENV SQOOP_HOME="/sqoop" \
+    SQOOP_INSTALLATION_URL="http://archive.apache.org/dist/sqoop/${SQOOP_VERSION}/sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz" \
+    SQOOP_MD5_URL="http://archive.apache.org/dist/sqoop/${SQOOP_VERSION}/sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz.md5"
 
-ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop \
-    HADOOP_MAPRED_HOME=$HADOOP_HOME \
-    HADOOP_COMMON_HOME=$HADOOP_HOME \
-    HADOOP_HDFS_HOME=$HADOOP_HOME \
-    YARN_HOME=$HADOOP_HOME \
-    ACCUMULO_HOME=/accumulo \
-    HIVE_HOME=/hive \
-    HBASE_HOME=/hbase \
-    HCAT_HOME=/hcatalog \
-    ZOOKEEPER_HOME=/zookeeper \
-    HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native \
-    LD_LIBRARY_PATH=$HADOOP_HOME/lib/native:$LD_LIBRARY_PATH \
-    POSTGRES_JAR_PATH=$SQOOP_HOME/lib/postgresql-${POSTGRES_JAR_VERSION}.jar
+RUN wget -q ${SQOOP_INSTALLATION_URL} \
+    && wget -qO- ${SQOOP_MD5_URL} | md5sum -c - \
+    && mkdir -p $SQOOP_HOME \
+    && tar -xvf sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz -C ${SQOOP_HOME} --strip-components 1 \
+    && rm sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz \
+    && rm -rf $SQOOP_HOME/docs
+
+ENV POSTGRES_JAR_VERSION="42.2.9"
+ENV POSTGRES_JAR_URL="https://jdbc.postgresql.org/download/postgresql-${POSTGRES_JAR_VERSION}.jar" \
+    POSTGRES_JAR_PATH=$SQOOP_HOME/lib/postgresql-${POSTGRES_JAR_VERSION}.jar \
+    JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+
+RUN wget ${POSTGRES_JAR_URL} -O ${POSTGRES_JAR_PATH}
+
+ENV HADOOP_CONF_DIR="$HADOOP_HOME/etc/hadoop" \
+    HADOOP_MAPRED_HOME="${HADOOP_HOME}" \
+    HADOOP_COMMON_HOME="${HADOOP_HOME}" \
+    HADOOP_HDFS_HOME="${HADOOP_HOME}" \
+    YARN_HOME="${HADOOP_HOME}" \
+    ACCUMULO_HOME="/accumulo" \
+    HIVE_HOME="/hive" \
+    HBASE_HOME="/hbase" \
+    HCAT_HOME="/hcatalog" \
+    ZOOKEEPER_HOME="/zookeeper" \
+    HADOOP_COMMON_LIB_NATIVE_DIR="${HADOOP_HOME}/lib/native" \
+    LD_LIBRARY_PATH="${HADOOP_HOME}/lib/native:${LD_LIBRARY_PATH}"
 
 RUN mkdir -p $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEPER_HOME
 
 ENV PATH=${SQOOP_HOME}/bin:${HADOOP_HOME}/sbin:$HADOOP_HOME/bin:${JAVA_HOME}/bin:${PATH}
 
-COPY . /pelican
 WORKDIR /pelican
+COPY Pipfile /pelican
+COPY Pipfile.lock /pelican
 
 RUN pip install --no-cache-dir pipenv
 RUN pipenv install --system --deploy
+
+COPY . /pelican
+
+ENV PYTHONUNBUFFERED=1
 
 ENTRYPOINT [ "python" ]
 CMD [ "job_import.py" ]
