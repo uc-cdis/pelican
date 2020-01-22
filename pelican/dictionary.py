@@ -105,11 +105,32 @@ class DataDictionaryTraversal:
 
         return path
 
+    def _topology_order(self, node_name, source_edges, target_class):
+        stack, path = [node_name], []
+
+        while stack:
+            vertex = stack[-1]
+
+            node = self.model.Node.get_subclass(vertex).__name__
+            edges = getattr(self.model.Edge, source_edges)(node)
+
+            children = [self.model.Node.get_subclass_named(getattr(e, target_class)).get_label() for e in edges]
+
+            visited_children = [child for child in children if child not in path]
+
+            if not visited_children:
+                path.insert(0, vertex)
+                stack.pop()
+            else:
+                stack.append(visited_children[0])
+
+        return path
+
     def get_upward_path(self, node_name):
-        return self._get_dfs(node_name, "_get_edges_with_src", "__dst_class__")
+        return self._topology_order(node_name, "_get_edges_with_src", "__dst_class__")
 
     def get_downward_path(self, node_name):
-        return self._get_dfs(node_name, "_get_edges_with_dst", "__src_class__")
+        return self._topology_order(node_name, "_get_edges_with_dst", "__src_class__")
 
     def full_traverse_path(self, node_name, extra_nodes=None, include_upward=False):
         if include_upward:
