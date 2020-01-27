@@ -168,3 +168,7 @@ The manifest configuration should include:
 ### Architecture
 
 <a href="https://www.lucidchart.com/publicSegments/view/8d612284-709e-4789-b9ae-0a23351b82a7/image.png"><img src="https://www.lucidchart.com/publicSegments/view/8d612284-709e-4789-b9ae-0a23351b82a7/image.png" width="600" /></a>
+
+### Release
+
+To produce a new release just add a `release` label to your PR and a Github Action will be triggered.
