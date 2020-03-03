@@ -20,7 +20,7 @@ if __name__ == "__main__":
     hostname = os.environ["GEN3_HOSTNAME"]
     input_data = os.environ["INPUT_DATA"]
 
-    gql = GuppyGQL(node=node, hostname="https://{}".format(hostname), access_token=access_token)
+    gql = GuppyGQL(node=node, hostname="{}".format(hostname), access_token=access_token)
     case_ids = gql.execute(filters=input_data)
 
     with open("/peregrine-creds.json") as pelican_creds_file:
