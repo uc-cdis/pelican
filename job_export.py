@@ -38,10 +38,14 @@ if __name__ == "__main__":
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
 
-    # EXTRA_NODES is a comma-delimited list of nodes to additionally include in the PFB
-    extra_nodes = os.environ.get("EXTRA_NODES")
-    if extra_nodes is not None:
-        extra_nodes = [n for n in extra_nodes.split(",")]
+    # EXTRA_NODES is an optional comma-delimited list of nodes to additionally include in the PFB.
+    if os.environ.get("EXTRA_NODES") is not None:
+        # Allow user to specify EXTRA_NODES == None by passing an empty string.
+        # This is so that BioDataCatalyst PFB exports can specify no extra nodes.
+        if os.environ["EXTRA_NODES"].strip() == "":
+            extra_nodes = None
+        else:
+            extra_nodes = [n for n in os.environ["EXTRA_NODES"].split(",")]
     else:
         # Preserved for backwards compatibility:
         # If EXTRA_NODES is not specified, add 'reference_file' node
