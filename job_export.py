@@ -19,8 +19,11 @@ if __name__ == "__main__":
     access_token = os.environ["ACCESS_TOKEN"]
     input_data = os.environ["INPUT_DATA"]
 
-    gql = GuppyGQL(node=node, hostname="http://revproxy-service", access_token=access_token)
-    case_ids = gql.execute(filters=input_data)
+    gql = GuppyGQL(
+        node=node, hostname="http://revproxy-service", access_token=access_token
+    )
+    filters = {"filters": input_data["filter"]}
+    case_ids = gql.execute(filters=filters)
 
     with open("/peregrine-creds.json") as pelican_creds_file:
         peregrine_creds = json.load(pelican_creds_file)
@@ -35,17 +38,25 @@ if __name__ == "__main__":
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
 
-    if "gtex" in dictionary_url:
-        extra_nodes = ["reference_file", "reference_file_index"]
+    # EXTRA_NODES is a comma-delimited list of nodes to additionally include in the PFB
+    extra_nodes = os.environ.get("EXTRA_NODES")
+    if extra_nodes is not None:
+        extra_nodes = [n for n in extra_nodes.split(",")]
     else:
-        extra_nodes = None
+        # Preserved for backwards compatibility:
+        # If EXTRA_NODES is not specified, add 'reference_file' node
+        # when exporting PFBs from BioDataCatalyst (aka STAGE aka gtex)
+        if "gtex" in dictionary_url:
+            extra_nodes = ["reference_file", "reference_file_index"]
+        else:
+            extra_nodes = None
 
     conf = (
         SparkConf()
-            .set("spark.jars", os.environ["POSTGRES_JAR_PATH"])
-            .set("spark.driver.memory", "10g")
-            .set("spark.executor.memory", "10g")
-            .setAppName("pelican")
+        .set("spark.jars", os.environ["POSTGRES_JAR_PATH"])
+        .set("spark.driver.memory", "10g")
+        .set("spark.executor.memory", "10g")
+        .setAppName("pelican")
     )
 
     spark = SparkSession.builder.config(conf=conf).getOrCreate()
@@ -66,6 +77,12 @@ if __name__ == "__main__":
                 pfb_file.write()
                 fname = pfb_file.name
 
+    # If the input data specifies the root node to use, use
+    # that root node. Otherwise fall back to $ROOT_NODE environment variable.
+    root_node = input_data.get("root_node")
+    if root_node is None:
+        root_node = node
+
     with open(fname, "a+b") as avro_output:
         with PFBReader(filename) as reader:
             with PFBWriter(avro_output) as pfb_file:
@@ -75,21 +92,23 @@ if __name__ == "__main__":
                     pfb_file,
                     ddt,
                     case_ids,
-                    node,
+                    root_node,
                     extra_nodes,
-                    True  # include upward nodes: project, program etc
+                    True,  # include upward nodes: project, program etc
                 )
 
     with open("/pelican-creds.json") as pelican_creds_file:
         pelican_creds = json.load(pelican_creds_file)
 
-    avro_filename = "{}.avro".format(datetime.now().strftime('export_%Y-%m-%dT%H:%M:%S'))
+    avro_filename = "{}.avro".format(
+        datetime.now().strftime("export_%Y-%m-%dT%H:%M:%S")
+    )
     s3file = s3upload_file(
         pelican_creds["manifest_bucket_name"],
         avro_filename,
         pelican_creds["aws_access_key_id"],
         pelican_creds["aws_secret_access_key"],
-        fname
+        fname,
     )
 
     print("[out] {}".format(s3file))
