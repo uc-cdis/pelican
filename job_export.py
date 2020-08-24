@@ -18,6 +18,7 @@ if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
     access_token = os.environ["ACCESS_TOKEN"]
     input_data = os.environ["INPUT_DATA"]
+    input_data = json.loads(input_data)
 
     gql = GuppyGQL(
         node=node, hostname="http://revproxy-service", access_token=access_token
