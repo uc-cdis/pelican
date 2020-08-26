@@ -26,7 +26,7 @@ class GuppyGQL(BaseGQL):
         self.url = f"{self.hostname}/guppy/download"
         query = {
             "type": self.node,
-            "fields": [f"{self.node}_id"],
+            "fields": [f"_{self.node}_id"],
             "accessibility": "accessible"
         }
         if filters:
@@ -36,7 +36,7 @@ class GuppyGQL(BaseGQL):
 
     def _graphql_endpoint(self, filters=None):
         self.url = f"{self.hostname}/guppy/graphql"
-        query = f"query($filter: JSON) {{ {self.node}(first: 10000, filter: $filter, accessibility: accessible) {{ {self.node}_id }} }}"
+        query = f"query($filter: JSON) {{ {self.node}(first: 10000, filter: $filter, accessibility: accessible) {{ _{self.node}_id }} }}"
         query_json = {"query": query}
         if filters:
             query_json["variables"] = filters
@@ -55,7 +55,7 @@ class GuppyGQL(BaseGQL):
         guppy_max_size = 10000
         r = self._download_endpoint(filters) if count > guppy_max_size else self._graphql_endpoint(filters)
         try:
-            ids = [item[f"{self.node}_id"] for item in r]
+            ids = [item[f"_{self.node}_id"] for item in r]
         except KeyError:
             ids = []
         return ids
