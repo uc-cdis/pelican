@@ -37,7 +37,8 @@ class GuppyGQL(BaseGQL):
     def _download_endpoint(self, filters=None, node_name=None):
         print("fallback to /download endpoint")
         if node_name is None:
-            node_name = f"_{self.node}_id"
+            print("no valid node_name")
+            return []
         self.url = f"{self.hostname}/guppy/download"
         query = {
             "type": self.node,
@@ -51,7 +52,8 @@ class GuppyGQL(BaseGQL):
 
     def _graphql_endpoint(self, filters=None, node_name=None):
         if node_name is None:
-            node_name = f"_{self.node}_id"
+            print("no valid node_name")
+            return []
         self.url = f"{self.hostname}/guppy/graphql"
         query = f"query($filter: JSON) {{ {self.node}(first: 10000, filter: $filter, accessibility: accessible) {{ {node_name} }} }}"
         query_json = {"query": query}
@@ -67,6 +69,8 @@ class GuppyGQL(BaseGQL):
     def execute(self, filters=None):
         count = self._count(filters)
         node_name = self._mapping()
+        if node_name is None:
+            node_name = f"_{self.node}_id"
         # Elasticsearch has a default limitation of 10000 for search results
         # https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-body.html#request-body-search-from-size
         # therefore, Pelican will use Guppy 'download' endpoint
