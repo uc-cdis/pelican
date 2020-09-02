@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+import gen3
 from datetime import datetime
 
 from pfb.importers.gen3dict import _from_dict
@@ -91,5 +92,7 @@ if __name__ == "__main__":
         pelican_creds["aws_secret_access_key"],
         fname
     )
+
+    # send s3 link and information to indexd to create guid and send it back
 
     print("[out] {}".format(s3file))
