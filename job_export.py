@@ -1,7 +1,8 @@
 import json
 import os
 import tempfile
-import gen3
+import hashlib
+
 from datetime import datetime
 
 from pfb.importers.gen3dict import _from_dict
@@ -9,6 +10,9 @@ from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
+
+from gen3.index import Gen3Index
+from gen3.auth import Gen3Auth
 
 from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.graphql.guppy_gql import GuppyGQL
@@ -92,6 +96,38 @@ if __name__ == "__main__":
         pelican_creds["aws_secret_access_key"],
         fname
     )
+
+    # calculate md5 sum
+    md5_sum = hashlib.md5()
+    chunk_size = 8192
+    with open(fname, "rb") as f:
+        while True:
+            data = f.read(chunk_size)
+            if not data:
+                break
+            md5_sum.update(data)
+
+    md5_digest = md5_sum.digest
+
+    # try sending to indexd
+    auth = Gen3Auth(COMMONS, refresh_file=access_token)
+    index = Gen3Index(COMMONS, auth_provider=auth)
+
+    if not index.is_healthy():
+        print(f"uh oh! The indexing service is not healthy in the commons {COMMONS}")
+
+    print("trying to create new indexed file object record:\n")
+    try:
+        response = index.create_record(
+            filename = avro_filename,
+            hashes={"md5": str(md5_digest)}, 
+            urls = [s3file],
+            size=os.stat(fname).st_size
+        )
+    except Exception as exc:
+        print(
+            "\nERROR ocurred when trying to create the record, you probably don't have access."
+        )
 
     # send s3 link and information to indexd to create guid and send it back
 
