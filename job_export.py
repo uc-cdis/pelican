@@ -18,6 +18,7 @@ from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.jobs import export_pfb_job
 from pelican.s3 import s3upload_file
+from pelican.indexd import indexd_submit
 
 if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
@@ -109,26 +110,37 @@ if __name__ == "__main__":
 
     md5_digest = md5_sum.digest
 
+    COMMONS = "https://mlukowski.planx-pla.net/"
+
     # try sending to indexd
-    auth = Gen3Auth(COMMONS, refresh_file=access_token)
-    index = Gen3Index(COMMONS, auth_provider=auth)
+    # auth = Gen3Auth(COMMONS, refresh_file=access_token)
+    # index = Gen3Index(COMMONS, auth_provider=auth)
 
-    if not index.is_healthy():
-        print(f"uh oh! The indexing service is not healthy in the commons {COMMONS}")
+    indexd_record = indexd_submit(
+        COMMONS,
+        access_token,
+        fname,
+        os.stat(fname).st_size,
+        [s3file],
+        {"md5": str(md5_digest)}
+    )    
 
-    print("trying to create new indexed file object record:\n")
-    try:
-        response = index.create_record(
-            filename = avro_filename,
-            hashes={"md5": str(md5_digest)}, 
-            urls = [s3file],
-            size=os.stat(fname).st_size
-        )
-    except Exception as exc:
-        print(
-            "\nERROR ocurred when trying to create the record, you probably don't have access."
-        )
+    # if not index.is_healthy():
+    #     print(f"uh oh! The indexing service is not healthy in the commons {COMMONS}")
+
+    # print("trying to create new indexed file object record:\n")
+    # try:
+    #     response = index.create_record(
+    #         filename = avro_filename,
+    #         hashes={"md5": str(md5_digest)}, 
+    #         urls = [s3file],
+    #         size=os.stat(fname).st_size
+    #     )
+    # except Exception as exc:
+    #     print(
+    #         "\nERROR ocurred when trying to create the record, you probably don't have access."
+    #     )
 
     # send s3 link and information to indexd to create guid and send it back
 
-    print("[out] {}".format(s3file))
+    print("[out] {}".format(indexd_record["did"]))
