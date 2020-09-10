@@ -25,4 +25,4 @@ def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = N
 	if r.status_code == 200:
 		return r.json()
 	else:
-		raise Exception(f"Submission to indexd failt with {r.status_code}")
+		raise Exception(f"Submission to indexd failt with {r.status_code} ------- {r.text}")
