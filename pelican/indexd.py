@@ -17,6 +17,7 @@ def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = N
 	body["size"] = size
 	body["urls"] = urls
 	body["hashes"] = hashes
+	body["form"] = "object"
 	if did:
 		body["did"] = did
 
@@ -27,7 +28,7 @@ def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = N
 
 	indexd_hostname = hostname + "index/index"
 
-	r = requests.post(indexd_hostname, data=body, headers={"content-type": "application/json", "Authorization": "Bearer " + access_token})
+	r = requests.post(indexd_hostname, data=json.dumps(body), headers={"content-type": "application/json", "Authorization": "Bearer " + access_token})
 
 	if r.status_code == 200:
 		return r.json()
