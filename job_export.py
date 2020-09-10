@@ -108,7 +108,7 @@ if __name__ == "__main__":
                 break
             md5_sum.update(data)
 
-    md5_digest = md5_sum.digest
+    md5_digest = md5_sum.hexdigest()
 
     COMMONS = "https://mlukowski.planx-pla.net/"
 

@@ -25,12 +25,11 @@ def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = N
 	print(json.dumps(body))
 	print("------------------------------------------")
 
-	r = requests.post(hostname+"index/index", data=body, 
-		headers={"content-type": "application/json", "Authorization": "Bearer " + access_token})
+	indexd_hostname = hostname + "index/index"
 
-
+	r = requests.post(indexd_hostname, data=body, headers={"content-type": "application/json", "Authorization": "Bearer " + access_token})
 
 	if r.status_code == 200:
 		return r.json()
 	else:
-		raise Exception(f"Submission to indexd failt with {r.status_code} ------- {r.text}")
+		raise Exception(f"Submission to indexd failed with {r.status_code} ------- {r.text}")
