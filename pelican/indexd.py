@@ -1,4 +1,5 @@
 import requests
+import json
 
 def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = None):
 	"""
@@ -19,8 +20,15 @@ def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = N
 	if did:
 		body["did"] = did
 
+	print("------------------------------------------")
+	print(hostname)
+	print(json.dumps(body))
+	print("------------------------------------------")
+
 	r = requests.post(hostname+"index/index", data=body, 
 		headers={"content-type": "application/json", "Authorization": "Bearer " + access_token})
+
+
 
 	if r.status_code == 200:
 		return r.json()
