@@ -21,14 +21,16 @@ def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = N
 	if did:
 		body["did"] = did
 
-	print("------------------------------------------")
-	print(hostname)
-	print(json.dumps(body))
-	print("------------------------------------------")
+	auth = base64.b64encode(str("gdcapi: " + access_token).encode())
 
 	indexd_hostname = hostname + "index/index"
 
-	r = requests.post(indexd_hostname, data=json.dumps(body), headers={"content-type": "application/json", "Authorization": "Bearer " + access_token})
+	print("-----------------------------------------------------")
+	print(indexd_hostname)
+	print(json.dumps(body))
+	print("-----------------------------------------------------")
+
+	r = requests.post(indexd_hostname, data=json.dumps(body), headers={"content-type": "application/json", "Authorization": "Basic " + auth.decode()})
 
 	if r.status_code == 200:
 		return r.json()

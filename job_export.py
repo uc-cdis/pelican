@@ -110,16 +110,21 @@ if __name__ == "__main__":
 
     md5_digest = md5_sum.hexdigest()
 
-    COMMONS = "https://mlukowski.planx-pla.net/"
+    hostname = os.environ["GEN3_HOSTNAME"]
+
+    COMMONS = "https://" + hostname + "/"
 
     # try sending to indexd
     # auth = Gen3Auth(COMMONS, refresh_file=access_token)
     # index = Gen3Index(COMMONS, auth_provider=auth)
 
+    with open("/index-creds.json") as indexd_creds_file:
+        indexd_creds = json.load(indexd_creds_file)
+
     indexd_record = indexd_submit(
         COMMONS,
-        access_token,
-        fname,
+        indexd_creds["user_db"]["gdcapi"],
+        avro_filename,
         os.stat(fname).st_size,
         [s3file],
         {"md5": str(md5_digest)}
