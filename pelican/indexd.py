@@ -1,5 +1,6 @@
 import requests
 import json
+import base64
 
 def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = None):
 	"""
