@@ -118,7 +118,7 @@ if __name__ == "__main__":
     # auth = Gen3Auth(COMMONS, refresh_file=access_token)
     # index = Gen3Index(COMMONS, auth_provider=auth)
 
-    with open("/index-creds.json") as indexd_creds_file:
+    with open("/indexd-creds.json") as indexd_creds_file:
         indexd_creds = json.load(indexd_creds_file)
 
     indexd_record = indexd_submit(
