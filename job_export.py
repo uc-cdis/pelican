@@ -128,4 +128,4 @@ if __name__ == "__main__":
 
     # send s3 link and information to indexd to create guid and send it back
 
-    print("[out] {}".format("index/index"+indexd_record["did"]))
+    print("[out] {}".format("index/index/"+indexd_record["did"]))
