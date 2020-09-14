@@ -111,13 +111,9 @@ if __name__ == "__main__":
     md5_digest = md5_sum.hexdigest()
 
     hostname = os.environ["GEN3_HOSTNAME"]
-
     COMMONS = "https://" + hostname + "/"
 
     # try sending to indexd
-    # auth = Gen3Auth(COMMONS, refresh_file=access_token)
-    # index = Gen3Index(COMMONS, auth_provider=auth)
-
     with open("/indexd-creds.json") as indexd_creds_file:
         indexd_creds = json.load(indexd_creds_file)
 
@@ -126,26 +122,10 @@ if __name__ == "__main__":
         indexd_creds["user_db"]["gdcapi"],
         avro_filename,
         os.stat(fname).st_size,
-        [s3file],
+        [str(pelican_creds["manifest_bucket_name"] + avro_filename)],
         {"md5": str(md5_digest)}
     )    
 
-    # if not index.is_healthy():
-    #     print(f"uh oh! The indexing service is not healthy in the commons {COMMONS}")
-
-    # print("trying to create new indexed file object record:\n")
-    # try:
-    #     response = index.create_record(
-    #         filename = avro_filename,
-    #         hashes={"md5": str(md5_digest)}, 
-    #         urls = [s3file],
-    #         size=os.stat(fname).st_size
-    #     )
-    # except Exception as exc:
-    #     print(
-    #         "\nERROR ocurred when trying to create the record, you probably don't have access."
-    #     )
-
     # send s3 link and information to indexd to create guid and send it back
 
-    print("[out] {}".format(indexd_record["did"]))
+    print("[out] {}".format("index/index"+indexd_record["did"]))
