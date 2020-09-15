@@ -11,9 +11,6 @@ from pfb.writer import PFBWriter
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 
-from gen3.index import Gen3Index
-from gen3.auth import Gen3Auth
-
 from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.jobs import export_pfb_job
@@ -24,6 +21,11 @@ if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
     access_token = os.environ["ACCESS_TOKEN"]
     input_data = os.environ["INPUT_DATA"]
+
+    print("-----------------------------------")
+    print("This is the input data")
+    print(input_data)
+    print("-----------------------------------")
 
     gql = GuppyGQL(node=node, hostname="http://revproxy-service", access_token=access_token)
     case_ids = gql.execute(filters=input_data)
