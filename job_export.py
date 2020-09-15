@@ -117,12 +117,14 @@ if __name__ == "__main__":
     with open("/indexd-creds.json") as indexd_creds_file:
         indexd_creds = json.load(indexd_creds_file)
 
+    s3_url = "s3://" + pelican_creds["manifest_bucket_name"] + "/" + avro_filename
+
     indexd_record = indexd_submit(
         COMMONS,
         indexd_creds["user_db"]["gdcapi"],
         avro_filename,
         os.stat(fname).st_size,
-        [str(pelican_creds["manifest_bucket_name"] + avro_filename)],
+        [s3_url],
         {"md5": str(md5_digest)}
     )    
 
