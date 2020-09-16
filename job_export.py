@@ -103,36 +103,40 @@ if __name__ == "__main__":
         fname
     )
 
-    # calculate md5 sum
-    md5_sum = hashlib.md5()
-    chunk_size = 8192
-    with open(fname, "rb") as f:
-        while True:
-            data = f.read(chunk_size)
-            if not data:
-                break
-            md5_sum.update(data)
 
-    md5_digest = md5_sum.hexdigest()
+    if access_format == "guid":
+        # calculate md5 sum
+        md5_sum = hashlib.md5()
+        chunk_size = 8192
+        with open(fname, "rb") as f:
+            while True:
+                data = f.read(chunk_size)
+                if not data:
+                    break
+                md5_sum.update(data)
 
-    hostname = os.environ["GEN3_HOSTNAME"]
-    COMMONS = "https://" + hostname + "/"
+        md5_digest = md5_sum.hexdigest()
 
-    # try sending to indexd
-    with open("/indexd-creds.json") as indexd_creds_file:
-        indexd_creds = json.load(indexd_creds_file)
+        hostname = os.environ["GEN3_HOSTNAME"]
+        COMMONS = "https://" + hostname + "/"
 
-    s3_url = "s3://" + pelican_creds["manifest_bucket_name"] + "/" + avro_filename
+        # try sending to indexd
+        with open("/indexd-creds.json") as indexd_creds_file:
+            indexd_creds = json.load(indexd_creds_file)
 
-    indexd_record = indexd_submit(
-        COMMONS,
-        indexd_creds["user_db"]["gdcapi"],
-        avro_filename,
-        os.stat(fname).st_size,
-        [s3_url],
-        {"md5": str(md5_digest)}
-    )    
+        s3_url = "s3://" + pelican_creds["manifest_bucket_name"] + "/" + avro_filename
 
-    # send s3 link and information to indexd to create guid and send it back
+        indexd_record = indexd_submit(
+            COMMONS,
+            indexd_creds["user_db"]["gdcapi"],
+            avro_filename,
+            os.stat(fname).st_size,
+            [s3_url],
+            {"md5": str(md5_digest)}
+        )    
 
-    print("[out] {}".format("index/index/"+indexd_record["did"]))
+        # send s3 link and information to indexd to create guid and send it back
+
+        print("[out] {}".format("index/index/"+indexd_record["did"]))
+    else:
+        print("[out] {}".format(s3file))
