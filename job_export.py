@@ -23,12 +23,8 @@ if __name__ == "__main__":
     input_data = os.environ["INPUT_DATA"]
     access_format = os.environ["ACCESS_FORMAT"]
 
-    print("-----------------------------------")
-    print("This is the input data")
-    print(input_data)
     print("This is the format")
     print(access_format)
-    print("-----------------------------------")
 
     gql = GuppyGQL(node=node, hostname="http://revproxy-service", access_token=access_token)
     case_ids = gql.execute(filters=input_data)
@@ -136,7 +132,7 @@ if __name__ == "__main__":
         )    
 
         # send s3 link and information to indexd to create guid and send it back
+        print("[out] {}".format(indexd_record["did"]))
 
-        print("[out] {}".format("index/index/"+indexd_record["did"]))
     else:
         print("[out] {}".format(s3file))

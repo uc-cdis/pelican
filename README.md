@@ -22,6 +22,7 @@ The `pelican-export` job should have the following environment variables and mou
 * Mounts:
     * `pelican-creds-volume` - the secret from `kube-setup-pelicanjob`
     * `peregrine-creds-volume` - the secret to access sheepdog database.
+    * `indexd-creds-volume` - the secret to access indexd submissions
 
 ```
 {
@@ -67,6 +68,12 @@ The `pelican-export` job should have the following environment variables and mou
         "readOnly": true,
         "mountPath": "/peregrine-creds.json",
         "subPath": "creds.json"
+      },
+      {
+        "name": "indexd-creds-volume",
+        "readOnly": true,
+        "mountPath": "/indexd-creds.json",
+        "subPath": "creds.json"
       }
     ],
     "cpu-limit": "1",
@@ -83,6 +90,12 @@ The `pelican-export` job should have the following environment variables and mou
       "name": "peregrine-creds-volume",
       "secret": {
         "secretName": "peregrine-creds"
+      }
+    },
+    {
+      "name": "indexd-creds-volume",
+      "secret": {
+        "secretName": "indexd-creds"
       }
     }
   ],
