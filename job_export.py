@@ -1,6 +1,8 @@
 import json
 import os
 import tempfile
+import hashlib
+
 from datetime import datetime
 
 from pfb.importers.gen3dict import _from_dict
@@ -13,12 +15,19 @@ from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.jobs import export_pfb_job
 from pelican.s3 import s3upload_file
+from pelican.indexd import indexd_submit
 
 if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
     access_token = os.environ["ACCESS_TOKEN"]
     input_data = os.environ["INPUT_DATA"]
+    access_format = os.environ["ACCESS_FORMAT"]
+
+    print("This is the format")
+    print(access_format)
+
     input_data = json.loads(input_data)
+
 
     gql = GuppyGQL(
         node=node, hostname="http://revproxy-service", access_token=access_token
@@ -116,4 +125,40 @@ if __name__ == "__main__":
         fname,
     )
 
-    print("[out] {}".format(s3file))
+
+    if access_format == "guid":
+        # calculate md5 sum
+        md5_sum = hashlib.md5()
+        chunk_size = 8192
+        with open(fname, "rb") as f:
+            while True:
+                data = f.read(chunk_size)
+                if not data:
+                    break
+                md5_sum.update(data)
+
+        md5_digest = md5_sum.hexdigest()
+
+        hostname = os.environ["GEN3_HOSTNAME"]
+        COMMONS = "https://" + hostname + "/"
+
+        # try sending to indexd
+        with open("/indexd-creds.json") as indexd_creds_file:
+            indexd_creds = json.load(indexd_creds_file)
+
+        s3_url = "s3://" + pelican_creds["manifest_bucket_name"] + "/" + avro_filename
+
+        indexd_record = indexd_submit(
+            COMMONS,
+            indexd_creds["user_db"]["gdcapi"],
+            avro_filename,
+            os.stat(fname).st_size,
+            [s3_url],
+            {"md5": str(md5_digest)}
+        )    
+
+        # send s3 link and information to indexd to create guid and send it back
+        print("[out] {}".format(indexd_record["did"]))
+
+    else:
+        print("[out] {}".format(s3file))
