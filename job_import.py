@@ -29,7 +29,7 @@ if __name__ == "__main__":
     DB_PASS = sheepdog_creds["db_password"]
 
     # create a database in the name that was passed through
-    engine = sqlalchemy.create_engine("postgres://{user}@{host}/postgres".format(user=DB_USER, host=sheepdog_creds["db_host"]))
+    engine = sqlalchemy.create_engine("postgres://{user}:{password}@{host}/postgres".format(user=DB_USER, password=DB_PASS, host=sheepdog_creds["db_host"]))
     conn = engine.connect()
     conn.execute("commit")
 
@@ -37,11 +37,21 @@ if __name__ == "__main__":
     print("we are creating a new database named newtest0")
     print("_______________________________________")
 
-    conn.execute("create database newtest0")
-    conn.execute("grant all on database newtest- to sheepdog")
-    conn.close()
+    try:
+        conn.execute("create database newtest0")
+        conn.execute("grant all on database newtest- to sheepdog")
+    except Exception:
+        print("Unable to create database")
+        conn.close()
+        return
     # gen3 psql sheepdog -c "CREATE DATABASE TEST;"
     # gen3 psql sheepdog -c "GRANT ALL ON DATABASE TEST TO sheepdog
+
+
+
+    DB_URL = "jdbc:postgresql://{}/{}".format(
+        sheepdog_creds["db_host"], sheepdog_creds["db_database"]
+    )
 
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
