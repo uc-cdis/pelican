@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+import sqlalchemy
 
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
@@ -26,6 +27,17 @@ if __name__ == "__main__":
     )
     DB_USER = sheepdog_creds["db_username"]
     DB_PASS = sheepdog_creds["db_password"]
+
+    # create a database in the name that was passed through
+    engine = "postgres://{user}@{host}/postgres".format(user=DB_USER, host=sheepdog_creds["db_host"])
+    conn = engine.connect()
+    conn.execute("commit")
+
+    conn.execute("create database newtest0")
+    conn.execute("grant all on database newtest- to sheepdog")
+    conn.close()
+    # gen3 psql sheepdog -c "CREATE DATABASE TEST;"
+    # gen3 psql sheepdog -c "GRANT ALL ON DATABASE TEST TO sheepdog
 
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
