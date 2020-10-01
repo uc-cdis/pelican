@@ -33,6 +33,10 @@ if __name__ == "__main__":
     conn = engine.connect()
     conn.execute("commit")
 
+    print("_______________________________________")
+    print("we are creating a new database named newtest0")
+    print("_______________________________________")
+
     conn.execute("create database newtest0")
     conn.execute("grant all on database newtest- to sheepdog")
     conn.close()
