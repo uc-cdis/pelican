@@ -29,7 +29,7 @@ if __name__ == "__main__":
     DB_PASS = sheepdog_creds["db_password"]
 
     # create a database in the name that was passed through
-    engine = "postgres://{user}@{host}/postgres".format(user=DB_USER, host=sheepdog_creds["db_host"])
+    engine = sqlalchemy.create_engine("postgres://{user}@{host}/postgres".format(user=DB_USER, host=sheepdog_creds["db_host"]))
     conn = engine.connect()
     conn.execute("commit")
 
