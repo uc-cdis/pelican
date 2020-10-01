@@ -22,9 +22,9 @@ if __name__ == "__main__":
     with open("/sheepdog-creds.json") as pelican_creds_file:
         sheepdog_creds = json.load(pelican_creds_file)
 
-    DB_URL = "jdbc:postgresql://{}/{}".format(
-        sheepdog_creds["db_host"], sheepdog_creds["db_database"]
-    )
+    # DB_URL = "jdbc:postgresql://{}/{}".format(
+    #     sheepdog_creds["db_host"], sheepdog_creds["db_database"]
+    # )
     DB_USER = sheepdog_creds["db_username"]
     DB_PASS = sheepdog_creds["db_password"]
 
@@ -34,12 +34,12 @@ if __name__ == "__main__":
     conn.execute("commit")
 
     print("_______________________________________")
-    print("we are creating a new database named newtest0")
+    print("we are creating a new database named newtest1")
     print("_______________________________________")
 
     try:
-        conn.execute("create database newtest0")
-        conn.execute("grant all on database newtest- to sheepdog")
+        conn.execute("create database newtest1")
+        conn.execute("grant all on database newtest1 to sheepdog with grant option")
     except Exception:
         print("Unable to create database")
         conn.close()
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
 
     DB_URL = "jdbc:postgresql://{}/{}".format(
-        sheepdog_creds["db_host"], "newtest0"
+        sheepdog_creds["db_host"], "newtest1"
     )
 
     dictionary, model = init_dictionary(url=dictionary_url)
