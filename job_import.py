@@ -43,14 +43,13 @@ if __name__ == "__main__":
     except Exception:
         print("Unable to create database")
         conn.close()
-        return
     # gen3 psql sheepdog -c "CREATE DATABASE TEST;"
     # gen3 psql sheepdog -c "GRANT ALL ON DATABASE TEST TO sheepdog
 
 
 
     DB_URL = "jdbc:postgresql://{}/{}".format(
-        sheepdog_creds["db_host"], sheepdog_creds["db_database"]
+        sheepdog_creds["db_host"], "newtest0"
     )
 
     dictionary, model = init_dictionary(url=dictionary_url)
