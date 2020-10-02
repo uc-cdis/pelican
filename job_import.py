@@ -34,12 +34,12 @@ if __name__ == "__main__":
     conn.execute("commit")
 
     print("_______________________________________")
-    print("we are creating a new database named newtest1")
+    print("we are creating a new database named newtest2")
     print("_______________________________________")
 
     try:
-        conn.execute("create database newtest1")
-        conn.execute("grant all on database newtest1 to sheepdog with grant option")
+        conn.execute("create database newtest2")
+        conn.execute("grant all on database newtest2 to sheepdog with grant option")
     except Exception:
         print("Unable to create database")
         conn.close()
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
 
     DB_URL = "jdbc:postgresql://{}/{}".format(
-        sheepdog_creds["db_host"], "newtest1"
+        sheepdog_creds["db_host"], "newtest2"
     )
 
     dictionary, model = init_dictionary(url=dictionary_url)
