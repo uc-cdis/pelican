@@ -28,28 +28,30 @@ if __name__ == "__main__":
     DB_USER = sheepdog_creds["db_username"]
     DB_PASS = sheepdog_creds["db_password"]
 
+    NEW_DB_NAME = input_data_json["db"]
+
     # create a database in the name that was passed through
     engine = sqlalchemy.create_engine("postgres://{user}:{password}@{host}/postgres".format(user=DB_USER, password=DB_PASS, host=sheepdog_creds["db_host"]))
     conn = engine.connect()
     conn.execute("commit")
 
     print("_______________________________________")
-    print("we are creating a new database named newtest2")
+    print("we are creating a new database named ", NEW_DB_NAME)
     print("_______________________________________")
 
+    create_db_command = "create database " + NEW_DB_NAME
+    grant_db_access = "grant all on database " + NEW_DB_NAME + "to sheepdog with grant option"
+
     try:
-        conn.execute("create database newtest2")
-        conn.execute("grant all on database newtest2 to sheepdog with grant option")
+        conn.execute(create_db_command)
+        conn.execute(grant_db_access)
     except Exception:
         print("Unable to create database")
-        conn.close()
-    # gen3 psql sheepdog -c "CREATE DATABASE TEST;"
-    # gen3 psql sheepdog -c "GRANT ALL ON DATABASE TEST TO sheepdog
 
-
+    conn.close()
 
     DB_URL = "jdbc:postgresql://{}/{}".format(
-        sheepdog_creds["db_host"], "newtest2"
+        sheepdog_creds["db_host"], NEW_DB_NAME
     )
 
     dictionary, model = init_dictionary(url=dictionary_url)
