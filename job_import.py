@@ -40,7 +40,10 @@ if __name__ == "__main__":
     print("_______________________________________")
 
     create_db_command = "create database " + NEW_DB_NAME
-    grant_db_access = "grant all on database " + NEW_DB_NAME + "to sheepdog with grant option"
+    print("This is the db create command: ", create_db_command)
+
+    grant_db_access = "grant all on database " + NEW_DB_NAME + " to sheepdog with grant option"
+    print("This is the db access command: ", grant_db_access)
 
     try:
         conn.execute(create_db_command)
