@@ -25,10 +25,10 @@ if __name__ == "__main__":
     with open("/sheepdog-creds.json") as pelican_creds_file:
         sheepdog_creds = json.load(pelican_creds_file)
 
-    if "credentials" in input_data and "guid" in input_data:
+    if "credentials" in input_data_json and "guid" in input_data_json:
         print("we are getting a signed url for the given guid")
         with open("/api-creds.json", "w+") as api_creds:
-            api_creds.write(json.dumps(input_data["credentials"]))
+            api_creds.write(json.dumps(input_data_json["credentials"]))
 
 
         API_KEY = "api-creds.json"
@@ -36,9 +36,9 @@ if __name__ == "__main__":
         auth = Gen3Auth(hostname, refresh_file = API_KEY)
         sub = Gen3File(hostname, auth)
 
-        signed_url = sub.get_presigned_url(input_data["guid"], protocol = "s3")
+        signed_url = sub.get_presigned_url(input_data_json["guid"], protocol = "s3")
         print("the signed url is ", signed_url["url"])
-        input_data["url"] = signed_url["url"]
+        input_data_json["url"] = signed_url["url"]
 
     # DB_URL = "jdbc:postgresql://{}/{}".format(
     #     sheepdog_creds["db_host"], sheepdog_creds["db_database"]
