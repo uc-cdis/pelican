@@ -27,11 +27,11 @@ if __name__ == "__main__":
 
     if "credentials" in input_data_json and "guid" in input_data_json:
         print("we are getting a signed url for the given guid")
-        with open("/api-creds.json", "w+") as api_creds:
+        with open("./api-creds.json", "w+") as api_creds:
             api_creds.write(json.dumps(input_data_json["credentials"]))
 
 
-        API_KEY = "api-creds.json"
+        API_KEY = "./api-creds.json"
 
         auth = Gen3Auth(hostname, refresh_file = API_KEY)
         sub = Gen3File(hostname, auth)
