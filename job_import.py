@@ -33,8 +33,13 @@ if __name__ == "__main__":
 
         API_KEY = "./api-creds.json"
 
-        auth = Gen3Auth(hostname, refresh_file = API_KEY)
-        sub = Gen3File(hostname, auth)
+        print(hostname)
+
+        host = "https://" + hostname
+        print(hostname)
+        
+        auth = Gen3Auth(host, refresh_file = API_KEY)
+        sub = Gen3File(host, auth)
 
         signed_url = sub.get_presigned_url(input_data_json["guid"], protocol = "s3")
         print("the signed url is ", signed_url["url"])
