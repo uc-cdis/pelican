@@ -21,13 +21,12 @@ if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
     access_token = os.environ["ACCESS_TOKEN"]
     input_data = os.environ["INPUT_DATA"]
-    access_format = os.environ["ACCESS_FORMAT"]
+    access_format = os.environ.get("ACCESS_FORMAT")
 
     print("This is the format")
     print(access_format)
 
     input_data = json.loads(input_data)
-
 
     gql = GuppyGQL(
         node=node, hostname="http://revproxy-service", access_token=access_token
@@ -125,7 +124,6 @@ if __name__ == "__main__":
         fname,
     )
 
-
     if access_format == "guid":
         # calculate md5 sum
         md5_sum = hashlib.md5()
@@ -154,8 +152,8 @@ if __name__ == "__main__":
             avro_filename,
             os.stat(fname).st_size,
             [s3_url],
-            {"md5": str(md5_digest)}
-        )    
+            {"md5": str(md5_digest)},
+        )
 
         # send s3 link and information to indexd to create guid and send it back
         print("[out] {}".format(indexd_record["did"]))
