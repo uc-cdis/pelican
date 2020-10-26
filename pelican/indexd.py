@@ -22,8 +22,6 @@ def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = N
 	if did:
 		body["did"] = did
 
-	auth = base64.b64encode(str("gdcapi: " + access_token).encode())
-
 	indexd_hostname = hostname + "index/index"
 
 	print("-----------------------------------------------------")
@@ -31,7 +29,7 @@ def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = N
 	print(json.dumps(body))
 	print("-----------------------------------------------------")
 
-	r = requests.post(indexd_hostname, data=json.dumps(body), headers={"content-type": "application/json", "Authorization": "Basic " + auth.decode()})
+	r = requests.post(indexd_hostname, data=json.dumps(body), headers={"content-type": "application/json"}, auth=("gdcapi", str(access_token)))
 
 	if r.status_code == 200:
 		return r.json()
