@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 import sqlalchemy
+import requests
 
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
@@ -9,9 +10,6 @@ from pyspark.sql import SparkSession
 from pelican.jobs import import_pfb_job
 from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.s3 import download_file
-
-from gen3.auth import Gen3Auth
-from gen3.file import Gen3File
 
 if __name__ == "__main__":
     access_token = os.environ["ACCESS_TOKEN"]
@@ -25,23 +23,19 @@ if __name__ == "__main__":
     with open("/sheepdog-creds.json") as pelican_creds_file:
         sheepdog_creds = json.load(pelican_creds_file)
 
-    if "credentials" in input_data_json and "guid" in input_data_json:
+    if "guid" in input_data_json:
+        print("a guid was supplied to the job")
         print("we are getting a signed url for the given guid")
-        with open("./api-creds.json", "w+") as api_creds:
-            api_creds.write(json.dumps(input_data_json["credentials"]))
-
-
-        API_KEY = "./api-creds.json"
-
-        print(hostname)
 
         host = "https://" + hostname
-        print(hostname)
-        
-        auth = Gen3Auth(host, refresh_file = API_KEY)
-        sub = Gen3File(host, auth)
 
-        signed_url = sub.get_presigned_url(input_data_json["guid"], protocol = "s3")
+        auth_headers = {"Authorization": "Bearer "+ access_token}
+
+        api_url = host + "/user/data/download/" + input_data_json["guid"] + "?protocol=s3"
+
+        signed_request = requests.get(api_url, headers=auth_headers)
+        
+        signed_url = signed_request.json()
         print("the signed url is ", signed_url["url"])
         input_data_json["url"] = signed_url["url"]
 
@@ -58,9 +52,7 @@ if __name__ == "__main__":
     conn = engine.connect()
     conn.execute("commit")
 
-    print("_______________________________________")
     print("we are creating a new database named ", NEW_DB_NAME)
-    print("_______________________________________")
 
     create_db_command = "create database " + NEW_DB_NAME
     print("This is the db create command: ", create_db_command)
@@ -73,6 +65,7 @@ if __name__ == "__main__":
         conn.execute(grant_db_access)
     except Exception:
         print("Unable to create database")
+        raise Exception
 
     conn.close()
 
