@@ -29,7 +29,7 @@ if __name__ == "__main__":
         print("a guid was supplied to the job")
         print("we are getting a signed url for the given guid")
 
-        host = "hhttp://revproxy-service"
+        host = "http://revproxy-service"
 
         auth_headers = {"Authorization": "Bearer "+ access_token}
 
