@@ -1,4 +1,5 @@
 import json
+import sqlalchemy
 from itertools import chain
 from collections import defaultdict
 from datetime import datetime
@@ -207,7 +208,7 @@ def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
         "stringtype": "unspecified",
     }
 
-    with open(pfb_file) as f:
+    with open(pfb_file, "rb") as f:
         avro_reader = reader(f)
         schema = avro_reader.writer_schema
 
