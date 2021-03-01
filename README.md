@@ -1,6 +1,6 @@
 # Pelican
 
-Provides a Docker images with Sower jobs to export and import PFB in Gen3.
+Provides Docker images with Sower jobs to export and import PFB in Gen3.
 
 ## PFB Export [![Docker Repository on Quay](https://quay.io/repository/cdis/pelican-export/status "Docker Repository on Quay")](https://quay.io/repository/cdis/pelican-export)
 
