@@ -139,6 +139,9 @@ if __name__ == "__main__":
 
         md5_digest = md5_sum.hexdigest()
 
+        # authz calculation
+        authz = "/programs/DEV/projects/test"
+
         hostname = os.environ["GEN3_HOSTNAME"]
         COMMONS = "https://" + hostname + "/"
 
