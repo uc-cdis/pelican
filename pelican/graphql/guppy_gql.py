@@ -47,6 +47,19 @@ class GuppyGQL(BaseGQL):
             r = []
         return r
 
+    def _graphql_auth_resource_path(self, filters=None):
+         self.url = f"{self.hostname}/guppy/graphql"
+         query = f"query($filter: JSON) {{ {self.node}(first: 10000, filter: $filter, accessibility: accessible) {{ auth_resource_path }} }}"
+         query_json = {"query": query}
+         if filters:
+            query_json["variables"] = filters
+        r = BaseGQL._execute(self, query_json)
+        try:
+            r = r["data"][self.node]
+        except KeyError:
+            r = []
+        return r
+
     def execute(self, filters=None):
         count = self._count(filters)
         # Elasticsearch has a default limitation of 10000 for search results
