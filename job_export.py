@@ -139,17 +139,14 @@ if __name__ == "__main__":
 
         md5_digest = md5_sum.hexdigest()
 
-        # authz calculation
+        # get authz fields
         auth_paths = gql._graphql_auth_resource_path(filters=filters)
-
+        
         authz = []
-
         if len(auth_paths) > 0:
             for path in auth_paths:
                 if path["auth_resource_path"] not in authz:
                         authz.append(path["auth_resource_path"])
-
-        print(authz)
 
         hostname = os.environ["GEN3_HOSTNAME"]
         COMMONS = "https://" + hostname + "/"
