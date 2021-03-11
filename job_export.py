@@ -142,12 +142,14 @@ if __name__ == "__main__":
         # authz calculation
         auth_paths = gql._graphql_auth_resource_path(filters=filters)
 
-        print(auth_paths)
-        try:
-            print(auth_paths["data"]["case"])
-        except KeyError:
-            print("this is not a dictionary")
-        authz = "/programs/DEV/projects/test"
+        authz = []
+
+        if len(auth_paths) > 0:
+            for path in auth_paths:
+                if path["auth_resource_path"] not in authz:
+                        authz.append(path["auth_resource_path"])
+
+        print(authz)
 
         hostname = os.environ["GEN3_HOSTNAME"]
         COMMONS = "https://" + hostname + "/"
