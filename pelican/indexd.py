@@ -2,7 +2,7 @@ import requests
 import json
 import base64
 
-def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = None):
+def indexd_submit(hostname, access_token, file_name, size, urls, hashes, authz = None, did = None):
 	"""
 	:params hostname: url of the commons
 	"params access_token: token for submitting files to indexd"
@@ -19,6 +19,9 @@ def indexd_submit(hostname, access_token, file_name, size, urls, hashes, did = N
 	body["urls"] = urls
 	body["hashes"] = hashes
 	body["form"] = "object"
+	
+	if authz:
+		body["authz"] = authz
 	if did:
 		body["did"] = did
 
