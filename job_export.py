@@ -180,8 +180,8 @@ if __name__ == "__main__":
         mds_record = mds_submit(
             COMMONS,
             access_token,
-            "pfb",
-            indexd_record["did"]
+            indexd_record["did"],
+            "pfb"
         )
 
     else:
