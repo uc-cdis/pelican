@@ -16,6 +16,7 @@ from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.jobs import export_pfb_job
 from pelican.s3 import s3upload_file
 from pelican.indexd import indexd_submit
+from pelican.mds import mds_submit
 
 if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
@@ -169,11 +170,18 @@ if __name__ == "__main__":
             os.stat(fname).st_size,
             [s3_url],
             {"md5": str(md5_digest)},
-            authz,
+            authz
         )
 
         # send s3 link and information to indexd to create guid and send it back
         print("[out] {}".format(indexd_record["did"]))
+
+        mds_record = mds_submit(
+            COMMONS,
+            access_token,
+            "pfb",
+            indexd_record["did"]
+        )
 
     else:
         print("[out] {}".format(s3file))
