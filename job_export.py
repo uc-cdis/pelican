@@ -176,6 +176,7 @@ if __name__ == "__main__":
         # send s3 link and information to indexd to create guid and send it back
         print("[out] {}".format(indexd_record["did"]))
 
+        print("sending information to the metadata service")
         mds_record = mds_submit(
             COMMONS,
             access_token,

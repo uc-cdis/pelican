@@ -26,6 +26,10 @@ def mds_submit(hostname, access_token, guid, file_type, message = None):
 	details["type"] = file_type
 	details["date_to_delete"] = exp_time
 
+	print("-------------")
+	print("posting to metadata service: ", json.dumps(details))
+	print("-------------")
+
 	r = requests.post(mds_hostname, data=json.dumps(details), headers={"content-type": "application/json", "Authorization": "Bearer " + access_token})
 
 	if r.status_code == 201:
