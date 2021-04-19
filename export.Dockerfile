@@ -1,4 +1,4 @@
-FROM python:3.7-stretch
+FROM quay.io/cdis/python:3.7-stretch
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     wget \
     unzip \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 ENV HADOOP_VERSION="3.2.1"

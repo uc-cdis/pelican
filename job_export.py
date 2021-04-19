@@ -139,6 +139,15 @@ if __name__ == "__main__":
 
         md5_digest = md5_sum.hexdigest()
 
+        # get authz fields
+        auth_paths = gql._graphql_auth_resource_path(filters=filters)
+        
+        authz = []
+        if len(auth_paths) > 0:
+            for path in auth_paths:
+                if path["auth_resource_path"] not in authz:
+                        authz.append(path["auth_resource_path"])
+
         hostname = os.environ["GEN3_HOSTNAME"]
         COMMONS = "https://" + hostname + "/"
 
@@ -154,7 +163,8 @@ if __name__ == "__main__":
             avro_filename,
             os.stat(fname).st_size,
             [s3_url],
-            {"md5": str(md5_digest)}
+            {"md5": str(md5_digest)},
+            authz
         )    
 
         # send s3 link and information to indexd to create guid and send it back
