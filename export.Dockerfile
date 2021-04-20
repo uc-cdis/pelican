@@ -85,5 +85,4 @@ RUN . $HOME/.poetry/env \
 
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT [ "poetry", "run", "python" ]
-CMD [ "job_export.py" ]
+ENTRYPOINT source $HOME/.poetry/env && poetry run python job_export.py
