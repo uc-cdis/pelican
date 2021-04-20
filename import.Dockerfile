@@ -1,5 +1,7 @@
 FROM quay.io/cdis/python:3.7-stretch
 
+ENV appname=pelican
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 #RUN mkdir -p /usr/share/man/man1
@@ -63,15 +65,25 @@ RUN mkdir -p $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEPER_HOME
 ENV PATH=${SQOOP_HOME}/bin:${HADOOP_HOME}/sbin:$HADOOP_HOME/bin:${JAVA_HOME}/bin:${PATH}
 
 WORKDIR /pelican
-COPY Pipfile /pelican
-COPY Pipfile.lock /pelican
 
-RUN pip install --no-cache-dir pipenv
-RUN pipenv install --system --deploy
+RUN pip install --upgrade pip
 
-COPY . /pelican
+# install poetry
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+
+COPY . /$appname
+WORKDIR /$appname
+
+# cache so that poetry install will run if these files change
+COPY poetry.lock pyproject.toml /$appname/
+
+# install Indexd and dependencies via poetry
+RUN . $HOME/.poetry/env \
+    && poetry config virtualenvs.create false \
+    && poetry install -vv --no-dev --no-interaction \
+    && poetry show -v
 
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT [ "python" ]
+ENTRYPOINT [ "poetry", "run", "python" ]
 CMD [ "job_import.py" ]
