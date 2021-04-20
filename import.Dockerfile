@@ -85,4 +85,4 @@ RUN . $HOME/.poetry/env \
 
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT source $HOME/.poetry/env && poetry run python job_import.py
+ENTRYPOINT . $HOME/.poetry/env && poetry run python job_import.py
