@@ -6,7 +6,7 @@ authors = ["CTDS UChicago <cdis@uchicago.edu>"]
 
 [tool.poetry.dependencies]
 python = ">=3.6.1,<3.8"
-pypfb = "^0.5.7"
+pypfb = {git = "https://github.com/uc-cdis/pypfb", branch = "fix/anvil-pfb"}
 fastavro = "^1.3.1"
 requests = "^2.25.1"
 psycopg2-binary = "^2.8.6"
