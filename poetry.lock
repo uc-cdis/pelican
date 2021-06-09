@@ -78,20 +78,20 @@ python-versions = "*"
 
 [[package]]
 name = "boto3"
-version = "1.17.84"
+version = "1.17.91"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
 
 [package.dependencies]
-botocore = ">=1.20.84,<1.21.0"
+botocore = ">=1.20.91,<1.21.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.4.0,<0.5.0"
 
 [[package]]
 name = "botocore"
-version = "1.20.84"
+version = "1.20.91"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -197,15 +197,15 @@ test = ["pytest (>=6.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pret
 
 [[package]]
 name = "dictionaryutils"
-version = "3.0.0"
-description = ""
+version = "3.4.1"
+description = "Python wrapper and metaschema for datadictionary."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6,<3.8"
 
 [package.dependencies]
-cdislogging = ">=1.0,<2.0"
-jsonschema = ">=2.5.1"
+cdislogging = ">=1.0.0,<2.0.0"
+jsonschema = ">=2.5,<4.0"
 PyYAML = ">=5.1,<6.0"
 requests = ">=2.18,<3.0"
 
@@ -391,19 +391,18 @@ test = ["flake8 (>=3.8.4,<3.9.0)", "pycodestyle (>=2.6.0,<2.7.0)"]
 
 [[package]]
 name = "importlib-metadata"
-version = "4.4.0"
+version = "1.7.0"
 description = "Read metadata from Python packages"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
 [package.dependencies]
-typing-extensions = {version = ">=3.6.4", markers = "python_version < \"3.8\""}
 zipp = ">=0.5"
 
 [package.extras]
-docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
-testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "packaging", "pep517", "pyfakefs", "flufl.flake8", "pytest-black (>=0.3.7)", "pytest-mypy", "importlib-resources (>=1.3)"]
+docs = ["sphinx", "rst.linker"]
+testing = ["packaging", "pep517", "importlib-resources (>=1.3)"]
 
 [[package]]
 name = "indexclient"
@@ -576,19 +575,22 @@ test = ["flaky", "pretend", "pytest (>=3.0.1)"]
 
 [[package]]
 name = "pypfb"
-version = "0.4.2"
+version = "0.5.10"
 description = "Python SDK for PFB format"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6,<3.8"
 
 [package.dependencies]
-click = ">=7.0,<8.0"
-dictionaryutils = ">=3.0"
-fastavro = ">=0.21"
-gdcdictionary = ">=1.2.0"
-python-json-logger = ">=0.1,<1.0"
-PyYAML = ">=5.1,<6.0"
+aiohttp = ">=3.6.3,<4.0.0"
+click = ">=7.1.2,<8.0.0"
+dictionaryutils = ">=3.2.0,<4.0.0"
+fastavro = ">=1.0.0,<2.0.0"
+gdcdictionary = ">=1.2.0,<2.0.0"
+gen3 = ">=4.2.0,<5.0.0"
+importlib_metadata = {version = ">=1.3.0,<2.0.0", markers = "python_version < \"3.8\""}
+python-json-logger = ">=0.1.11,<0.2.0"
+PyYAML = ">=5.3.1,<6.0.0"
 
 [[package]]
 name = "pyspark"
@@ -803,7 +805,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.6.1,<3.8"
-content-hash = "316c5799b350b1e9bd8a9f80954a5e17b9c3874ed3b673fa2a1eabf6fd5eb650"
+content-hash = "a98d501862669db2bc58f781f4de904a27d672b7f5a7bcc6dc863b0f6fc1efa6"
 
 [metadata.files]
 aiohttp = [
@@ -871,12 +873,12 @@ boto = [
     {file = "boto-2.49.0.tar.gz", hash = "sha256:ea0d3b40a2d852767be77ca343b58a9e3a4b00d9db440efb8da74b4e58025e5a"},
 ]
 boto3 = [
-    {file = "boto3-1.17.84-py2.py3-none-any.whl", hash = "sha256:1d24c6d1f5db4b52bb29f1dfe13fd3e9d95d9fa4634b0638a096f5a884173cde"},
-    {file = "boto3-1.17.84.tar.gz", hash = "sha256:8ee8766813864796be6c87ad762c6da4bfef603977931854a38f49fe4db06495"},
+    {file = "boto3-1.17.91-py2.py3-none-any.whl", hash = "sha256:b0808a58c54c595b6cc6271cbc14a09bb89f0951ca9e8b105d1e94bef3ed24a0"},
+    {file = "boto3-1.17.91.tar.gz", hash = "sha256:4cfab400cd9ca9b27b7dffb43f5675525ea5d36c81223d64d15542fdb16cdf7e"},
 ]
 botocore = [
-    {file = "botocore-1.20.84-py2.py3-none-any.whl", hash = "sha256:75e1397b80aa8757a26636b949eebd20b3cf67e8f1ed80dc01170907e06ea45d"},
-    {file = "botocore-1.20.84.tar.gz", hash = "sha256:bc59eb748fcb07835613ebea6dcc2600ae1a8be0fae30e40b9c1e81b73262296"},
+    {file = "botocore-1.20.91-py2.py3-none-any.whl", hash = "sha256:cbd0d5d57ec96319f8629347631b00cde72a9ae8826d36ad172c2ab61b299cb1"},
+    {file = "botocore-1.20.91.tar.gz", hash = "sha256:462e75419e6537efb2709b7eb5b8c7ade007d30209416f0476bd7c51a2ddc78d"},
 ]
 cdislogging = [
     {file = "cdislogging-1.0.0.tar.gz", hash = "sha256:a1cc2e48d5fc26d4b354b80c6497f1f1136f3e3e4f1d1855de8980ccf497fa0a"},
@@ -953,8 +955,7 @@ cryptography = [
     {file = "cryptography-3.4.7.tar.gz", hash = "sha256:3d10de8116d25649631977cb37da6cbdd2d6fa0e0281d014a5b7d337255ca713"},
 ]
 dictionaryutils = [
-    {file = "dictionaryutils-3.0.0-py3.6.egg", hash = "sha256:114cac7ff5e98b9d04e4e9eff340ed8489f10bdb64c144c31e74573aabdfe081"},
-    {file = "dictionaryutils-3.0.0.tar.gz", hash = "sha256:900dc103561141e09e65daf1d39f1f781a43e1fd20655281cc48adac17f6f4fc"},
+    {file = "dictionaryutils-3.4.1.tar.gz", hash = "sha256:4e108564763ecdbc75a3736647f6b3b5af2af237ca0c8bdb3b21d240d2b19474"},
 ]
 drsclient = [
     {file = "drsclient-0.1.4.tar.gz", hash = "sha256:315f7ed7bc75348d33a3ac28c8c0efda03850f32a6abca4b5b69d4b73fb50c92"},
@@ -1082,8 +1083,8 @@ immutables = [
     {file = "immutables-0.15.tar.gz", hash = "sha256:3713ab1ebbb6946b7ce1387bb9d1d7f5e09c45add58c2a2ee65f963c171e746b"},
 ]
 importlib-metadata = [
-    {file = "importlib_metadata-4.4.0-py3-none-any.whl", hash = "sha256:960d52ba7c21377c990412aca380bf3642d734c2eaab78a2c39319f67c6a5786"},
-    {file = "importlib_metadata-4.4.0.tar.gz", hash = "sha256:e592faad8de1bda9fe920cf41e15261e7131bcf266c30306eec00e8e225c1dd5"},
+    {file = "importlib_metadata-1.7.0-py2.py3-none-any.whl", hash = "sha256:dc15b2969b4ce36305c51eebe62d418ac7791e9a157911d58bfb1f9ccd8e2070"},
+    {file = "importlib_metadata-1.7.0.tar.gz", hash = "sha256:90bb658cdbbf6d1735b6341ce708fc7024a3e14e99ffdc5783edea9f9b077f83"},
 ]
 indexclient = [
     {file = "indexclient-2.1.0.tar.gz", hash = "sha256:777476eb97febfcd663b7f9454fba5151dee4d17254bfa0dfb5ff040c59b8532"},
@@ -1308,7 +1309,8 @@ pyopenssl = [
     {file = "pyOpenSSL-20.0.1.tar.gz", hash = "sha256:4c231c759543ba02560fcd2480c48dcec4dae34c9da7d3747c508227e0624b51"},
 ]
 pypfb = [
-    {file = "pypfb-0.4.2.tar.gz", hash = "sha256:2879e826dc1f6a4ab9cb1688007306225f86913629d404f45c0e2d73ed9f1dcd"},
+    {file = "pypfb-0.5.10-py3-none-any.whl", hash = "sha256:0ea8c92a331423eb06b5ff050d7546a0af3de800b257072256a051a0b042dd10"},
+    {file = "pypfb-0.5.10.tar.gz", hash = "sha256:3bbcc7d163a4d212b88d2c673fb67211ab7b2995cca4a1cb09efdb3002ad76d6"},
 ]
 pyspark = [
     {file = "pyspark-3.1.2.tar.gz", hash = "sha256:5e25ebb18756e9715f4d26848cc7e558035025da74b4fc325a0ebc05ff538e65"},
