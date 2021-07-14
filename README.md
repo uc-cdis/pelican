@@ -19,6 +19,7 @@ The `pelican-export` job should have the following environment variables and mou
     * `DICTIONARY_URL`
     * `GEN3_HOSTNAME`
     * `ROOT_NODE`
+    * `EXTRA_NODES` an optional comma-delimited list of nodes to additionally include in the PFB.
 * Mounts:
     * `pelican-creds-volume` - the secret from `kube-setup-pelicanjob`
     * `peregrine-creds-volume` - the secret to access sheepdog database.
@@ -54,6 +55,10 @@ The `pelican-export` job should have the following environment variables and mou
       {
         "name": "ROOT_NODE",
         "value": "subject"
+      },
+      {
+        "name": "EXTRA_NODES",
+        "value": "reference_file,reference_file_index"
       }
     ],
     "volumeMounts": [
