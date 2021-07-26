@@ -17,7 +17,7 @@ psqlgraph = "3.0.1"
 gen3datamodel = "<3.0.2"
 dictionaryutils = "^3.4.1"
 SQLAlchemy = "^1.4.9"
-pypfb = {git = "https://github.com/uc-cdis/pypfb", rev = "bug/unicode-error"}
+pypfb = {git = "https://github.com/uc-cdis/pypfb", rev = "fix/decode"}
 
 [tool.poetry.dev-dependencies]
 
