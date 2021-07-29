@@ -78,20 +78,20 @@ python-versions = "*"
 
 [[package]]
 name = "boto3"
-version = "1.18.7"
+version = "1.18.9"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.21.7,<1.22.0"
+botocore = ">=1.21.9,<1.22.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
 [[package]]
 name = "botocore"
-version = "1.21.7"
+version = "1.21.9"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -608,7 +608,7 @@ PyYAML = "^5.3.1"
 type = "git"
 url = "https://github.com/uc-cdis/pypfb"
 reference = "fix/decode"
-resolved_reference = "08c35f5b615747c893ba62d557f765fb0eecfe1d"
+resolved_reference = "c98731f8beb225608ea3753e8647b946f8751cac"
 
 [[package]]
 name = "pyspark"
@@ -891,12 +891,12 @@ boto = [
     {file = "boto-2.49.0.tar.gz", hash = "sha256:ea0d3b40a2d852767be77ca343b58a9e3a4b00d9db440efb8da74b4e58025e5a"},
 ]
 boto3 = [
-    {file = "boto3-1.18.7-py3-none-any.whl", hash = "sha256:c7f45b0417395d3020c98cdc10f942939883018210e29dbfe6fbfc0a74e503ec"},
-    {file = "boto3-1.18.7.tar.gz", hash = "sha256:a012570d3535ec6c4db97e60ef51c2f39f38246429e1455cecc26c633ed81c10"},
+    {file = "boto3-1.18.9-py3-none-any.whl", hash = "sha256:ada486d25d5fccbadb19ffbfcfa47293a801f8afd158f2deb0fdb72f639f5a6b"},
+    {file = "boto3-1.18.9.tar.gz", hash = "sha256:57f464a318c078551fbf87f73a7c15055ba1ffc5bea9b54bc85776c14e7a709f"},
 ]
 botocore = [
-    {file = "botocore-1.21.7-py3-none-any.whl", hash = "sha256:34c8b151a25616ed7791218f6d7780c3a97725fe3ceeaa28085b345a8513af6e"},
-    {file = "botocore-1.21.7.tar.gz", hash = "sha256:dcf399d21170bb899e00d2a693bddcc79e61471fbfead8500a65578700a3190a"},
+    {file = "botocore-1.21.9-py3-none-any.whl", hash = "sha256:08e1d028934e8d14610bbbb2f716378a2882d9651c20cb9e1ae873169362a79b"},
+    {file = "botocore-1.21.9.tar.gz", hash = "sha256:c9a60ecf9dbae5d678008dda2b8850fc68203d82a6b31513a654601422f8f451"},
 ]
 cdislogging = [
     {file = "cdislogging-1.0.0.tar.gz", hash = "sha256:a1cc2e48d5fc26d4b354b80c6497f1f1136f3e3e4f1d1855de8980ccf497fa0a"},
