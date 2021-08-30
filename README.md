@@ -1,4 +1,4 @@
-# Pelican 
+# Pelican
 
 Provides Docker images with Sower jobs to export and import PFB in Gen3.
 
