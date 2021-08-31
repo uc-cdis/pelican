@@ -8,4 +8,4 @@ jobs:
     steps:
     - uses: actions/labeler@v3
       with:
-        repo-token: "${{ secrets.GEN3_RELEASE_GH_TOKEN }}"
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
