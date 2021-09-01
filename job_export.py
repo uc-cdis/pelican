@@ -97,6 +97,13 @@ if __name__ == "__main__":
     if root_node is None:
         root_node = node
 
+    # adding aligned_reads_index to the extra nodes on VCF files to make them inline with CRAM files
+    if root_node == "simple_germline_variation":
+        if extra_nodes is None:
+            extra_nodes = ["aligned_reads_index"]
+        else:
+            extra_nodes.append("aligned_reads_index")
+
     with open(fname, "a+b") as avro_output:
         with PFBReader(filename) as reader:
             with PFBWriter(avro_output) as pfb_file:
