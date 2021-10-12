@@ -86,32 +86,15 @@ class DataDictionaryTraversal:
 
         return r
 
-    def _get_dfs(self, node_name, source_edges, target_class):
-        stack, path = [node_name], []
-
-        while stack:
-            vertex = stack.pop()
-            if vertex in path:
-                continue
-            path.append(vertex)
-
-            node = self.model.Node.get_subclass(vertex).__name__
-            edges = getattr(self.model.Edge, source_edges)(node)
-
-            for neighbor in [
-                self.model.Node.get_subclass_named(getattr(e, target_class)).get_label() for e in edges
-            ]:
-                stack.append(neighbor)
-
-        return path
-
     def _topology_order(self, node_name, source_edges, target_class):
         stack, path = [node_name], []
 
         while stack:
             vertex = stack[-1]
 
-            node = self.model.Node.get_subclass(vertex).__name__
+            node_class = self.model.Node.get_subclass(vertex)
+            assert node_class, f"Node name '{vertex}' does not exist in the graph data model. Maybe you need to provide a 'root_node' (see Pelican documentation)?"
+            node = node_class.__name__
             edges = getattr(self.model.Edge, source_edges)(node)
 
             children = [self.model.Node.get_subclass_named(getattr(e, target_class)).get_label() for e in edges]
