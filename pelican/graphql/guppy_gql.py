@@ -27,7 +27,7 @@ class GuppyGQL(BaseGQL):
         query = {
             "type": self.node,
             "fields": [f"_{self.node}_id"],
-            "accessibility": "accessible"
+            "accessibility": "accessible",
         }
         if filters:
             query.update(json.loads(filters))
@@ -66,7 +66,11 @@ class GuppyGQL(BaseGQL):
         # https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-body.html#request-body-search-from-size
         # therefore, Pelican will use Guppy 'download' endpoint
         guppy_max_size = 10000
-        r = self._download_endpoint(filters) if count > guppy_max_size else self._graphql_endpoint(filters)
+        r = (
+            self._download_endpoint(filters)
+            if count > guppy_max_size
+            else self._graphql_endpoint(filters)
+        )
         try:
             ids = [item[f"_{self.node}_id"] for item in r]
         except KeyError:

@@ -28,7 +28,6 @@ if __name__ == "__main__":
 
     input_data = json.loads(input_data)
 
-
     gql = GuppyGQL(
         node=node, hostname="http://revproxy-service", access_token=access_token
     )
@@ -132,7 +131,6 @@ if __name__ == "__main__":
         fname,
     )
 
-
     if access_format == "guid":
         # calculate md5 sum
         md5_sum = hashlib.md5()
@@ -148,12 +146,12 @@ if __name__ == "__main__":
 
         # get authz fields
         auth_paths = gql._graphql_auth_resource_path(filters=filters)
-        
+
         authz = []
         if len(auth_paths) > 0:
             for path in auth_paths:
                 if path["auth_resource_path"] not in authz:
-                        authz.append(path["auth_resource_path"])
+                    authz.append(path["auth_resource_path"])
 
         hostname = os.environ["GEN3_HOSTNAME"]
         COMMONS = "https://" + hostname + "/"
@@ -171,8 +169,8 @@ if __name__ == "__main__":
             os.stat(fname).st_size,
             [s3_url],
             {"md5": str(md5_digest)},
-            authz
-        )    
+            authz,
+        )
 
         # send s3 link and information to indexd to create guid and send it back
         print("[out] {}".format(indexd_record["did"]))
