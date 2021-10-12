@@ -31,12 +31,14 @@ if __name__ == "__main__":
 
         host = "http://revproxy-service"
 
-        auth_headers = {"Authorization": "Bearer "+ access_token}
+        auth_headers = {"Authorization": "Bearer " + access_token}
 
-        api_url = host + "/user/data/download/" + input_data_json["guid"] + "?protocol=s3"
+        api_url = (
+            host + "/user/data/download/" + input_data_json["guid"] + "?protocol=s3"
+        )
 
         signed_request = requests.get(api_url, headers=auth_headers)
-        
+
         signed_url = signed_request.json()
         print("the signed url is ", signed_url["url"])
         input_data_json["url"] = signed_url["url"]
@@ -50,7 +52,11 @@ if __name__ == "__main__":
     NEW_DB_NAME = input_data_json["db"]
 
     # create a database in the name that was passed through
-    engine = sqlalchemy.create_engine("postgres://{user}:{password}@{host}/postgres".format(user=DB_USER, password=DB_PASS, host=sheepdog_creds["db_host"]))
+    engine = sqlalchemy.create_engine(
+        "postgres://{user}:{password}@{host}/postgres".format(
+            user=DB_USER, password=DB_PASS, host=sheepdog_creds["db_host"]
+        )
+    )
     conn = engine.connect()
     conn.execute("commit")
 
@@ -71,19 +77,17 @@ if __name__ == "__main__":
 
     conn.close()
 
-    DB_URL = "jdbc:postgresql://{}/{}".format(
-        sheepdog_creds["db_host"], NEW_DB_NAME
-    )
+    DB_URL = "jdbc:postgresql://{}/{}".format(sheepdog_creds["db_host"], NEW_DB_NAME)
 
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
 
     conf = (
         SparkConf()
-            .set("spark.jars", os.environ["POSTGRES_JAR_PATH"])
-            .set("spark.driver.memory", "10g")
-            .set("spark.executor.memory", "10g")
-            .setAppName("pelican")
+        .set("spark.jars", os.environ["POSTGRES_JAR_PATH"])
+        .set("spark.driver.memory", "10g")
+        .set("spark.executor.memory", "10g")
+        .setAppName("pelican")
     )
 
     spark = SparkSession.builder.config(conf=conf).getOrCreate()

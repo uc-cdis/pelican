@@ -4,7 +4,9 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def s3upload_file(bucket, key, aws_access_key_id, aws_secret_access_key, filepath, expiration=3600):
+def s3upload_file(
+    bucket, key, aws_access_key_id, aws_secret_access_key, filepath, expiration=3600
+):
     """
 
     :param bucket: the destination bucket for the file upload
@@ -32,7 +34,9 @@ def s3upload_file(bucket, key, aws_access_key_id, aws_secret_access_key, filepat
     return response
 
 
-def s3download_file(bucket, key, aws_access_key_id, aws_secret_access_key, fileobj=None, filepath=None):
+def s3download_file(
+    bucket, key, aws_access_key_id, aws_secret_access_key, fileobj=None, filepath=None
+):
     """
 
     :param bucket: the source bucket for the file download
@@ -49,8 +53,9 @@ def s3download_file(bucket, key, aws_access_key_id, aws_secret_access_key, fileo
         aws_secret_access_key=aws_secret_access_key,
     )
 
-    assert (fileobj is None and filepath is not None) or (fileobj is not None and filepath is None),\
-        "both arguments can't be specified"
+    assert (fileobj is None and filepath is not None) or (
+        fileobj is not None and filepath is None
+    ), "both arguments can't be specified"
 
     if fileobj:
         client.download_fileobj(bucket, key, fileobj)
@@ -62,13 +67,14 @@ def s3download_file(bucket, key, aws_access_key_id, aws_secret_access_key, fileo
 def download_file(url, fileobj=None, filepath=None):
     r = requests.get(url)
 
-    assert (fileobj is None and filepath is not None) or (fileobj is not None and filepath is None), \
-        "both arguments can't be specified"
+    assert (fileobj is None and filepath is not None) or (
+        fileobj is not None and filepath is None
+    ), "both arguments can't be specified"
 
     if fileobj:
         fileobj.write(r.content)
     if filepath:
-        with open(filepath, 'wb') as f:
+        with open(filepath, "wb") as f:
             f.write(r.content)
 
     return
