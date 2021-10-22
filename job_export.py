@@ -31,7 +31,7 @@ if __name__ == "__main__":
     gql = GuppyGQL(
         node=node, hostname="http://revproxy-service", access_token=access_token
     )
-    filters = json.dumps({"filter": input_data["filter"]})
+    filters = json.dumps({"filter": input_data.get("filter", {})})
     case_ids = gql.execute(filters=filters)
 
     with open("/peregrine-creds.json") as pelican_creds_file:

@@ -37,8 +37,11 @@ class DataDictionaryTraversal:
     def get_edge_table_by_labels(self):
         edges = self.get_edges()
         edge_tables = {
-            (self.model.Node.get_subclass_named(edge.__src_class__).label,
-             self.model.Node.get_subclass_named(edge.__dst_class__).label): edge.__tablename__ for edge in edges
+            (
+                self.model.Node.get_subclass_named(edge.__src_class__).label,
+                self.model.Node.get_subclass_named(edge.__dst_class__).label,
+            ): edge.__tablename__
+            for edge in edges
         }
         return edge_tables
 
@@ -58,7 +61,9 @@ class DataDictionaryTraversal:
         it = defaultdict(list)
 
         for edge in edges:
-            it[self.model.Node.get_subclass_named(edge.__src_class__).label].append(edge.__tablename__)
+            it[self.model.Node.get_subclass_named(edge.__src_class__).label].append(
+                edge.__tablename__
+            )
 
         return it
 
@@ -78,7 +83,8 @@ class DataDictionaryTraversal:
             r.append(s)
 
             for i in [
-                self.model.Node.get_subclass_named(e.__src_class__).get_label() for e in edges
+                self.model.Node.get_subclass_named(e.__src_class__).get_label()
+                for e in edges
             ]:
                 if i not in visited:
                     queue.append(i)
@@ -86,35 +92,23 @@ class DataDictionaryTraversal:
 
         return r
 
-    def _get_dfs(self, node_name, source_edges, target_class):
-        stack, path = [node_name], []
-
-        while stack:
-            vertex = stack.pop()
-            if vertex in path:
-                continue
-            path.append(vertex)
-
-            node = self.model.Node.get_subclass(vertex).__name__
-            edges = getattr(self.model.Edge, source_edges)(node)
-
-            for neighbor in [
-                self.model.Node.get_subclass_named(getattr(e, target_class)).get_label() for e in edges
-            ]:
-                stack.append(neighbor)
-
-        return path
-
     def _topology_order(self, node_name, source_edges, target_class):
         stack, path = [node_name], []
 
         while stack:
             vertex = stack[-1]
 
-            node = self.model.Node.get_subclass(vertex).__name__
+            node_class = self.model.Node.get_subclass(vertex)
+            assert (
+                node_class
+            ), f"Node name '{vertex}' does not exist in the graph data model. Maybe you need to provide a 'root_node' (see Pelican documentation)?"
+            node = node_class.__name__
             edges = getattr(self.model.Edge, source_edges)(node)
 
-            children = [self.model.Node.get_subclass_named(getattr(e, target_class)).get_label() for e in edges]
+            children = [
+                self.model.Node.get_subclass_named(getattr(e, target_class)).get_label()
+                for e in edges
+            ]
 
             visited_children = [child for child in children if child not in path]
 
@@ -134,14 +128,24 @@ class DataDictionaryTraversal:
 
     def full_traverse_path(self, node_name, extra_nodes=None, include_upward=False):
         if include_upward:
-            upward_path = list(zip(itertools.repeat(False), self.get_upward_path(node_name)))
-            downward_path = list(zip(itertools.repeat(True), self.get_downward_path(node_name)))[1:]
+            upward_path = list(
+                zip(itertools.repeat(False), self.get_upward_path(node_name))
+            )
+            downward_path = list(
+                zip(itertools.repeat(True), self.get_downward_path(node_name))
+            )[1:]
             if extra_nodes:
-                path = upward_path + list(zip(itertools.repeat(True), extra_nodes)) + downward_path
+                path = (
+                    upward_path
+                    + list(zip(itertools.repeat(True), extra_nodes))
+                    + downward_path
+                )
             else:
                 path = upward_path + downward_path
         else:
-            downward_path = list(zip(itertools.repeat(True), self.get_downward_path(node_name)))
+            downward_path = list(
+                zip(itertools.repeat(True), self.get_downward_path(node_name))
+            )
             path = downward_path
 
         return path
