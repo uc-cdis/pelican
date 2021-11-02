@@ -1,4 +1,4 @@
-FROM quay.io/cdis/python:3.7-stretch
+FROM quay.io/cdis/python:pybase3-2.0.0
 
 ENV appname=pelican
 
@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    openjdk-8-jdk-headless \
+    openjdk-11-jdk-headless \
     # dependency for pyscopg2
     libpq-dev \
     postgresql-client \
