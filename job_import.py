@@ -62,10 +62,10 @@ if __name__ == "__main__":
 
     print("we are creating a new database named ", NEW_DB_NAME)
 
-    create_db_command = "create database %s".format(NEW_DB_NAME)
+    create_db_command = "create database %s" % NEW_DB_NAME
     print("This is the db create command: ", create_db_command)
 
-    grant_db_access = "grant all on database %s to sheepdog with grant option".format(NEW_DB_NAME)
+    grant_db_access = "grant all on database %s to sheepdog with grant option" % NEW_DB_NAME
     print("This is the db access command: ", grant_db_access)
 
     try:
