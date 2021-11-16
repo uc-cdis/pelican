@@ -69,8 +69,8 @@ if __name__ == "__main__":
     print("This is the db access command: ", grant_db_access)
 
     try:
-        conn.execute(create_db_command, db=NEW_DB_NAME)
-        conn.execute(grant_db_access, db=NEW_DB_NAME)
+        conn.execute(text(create_db_command), db=NEW_DB_NAME)
+        conn.execute(text(grant_db_access), db=NEW_DB_NAME)
     except Exception:
         print("Unable to create database")
         raise Exception
