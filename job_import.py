@@ -62,15 +62,15 @@ if __name__ == "__main__":
 
     print("we are creating a new database named ", NEW_DB_NAME)
 
-    create_db_command = "create database :db"
+    create_db_command = "create database %s".format(NEW_DB_NAME)
     print("This is the db create command: ", create_db_command)
 
-    grant_db_access = "grant all on database :db to sheepdog with grant option"
+    grant_db_access = "grant all on database %s to sheepdog with grant option".format(NEW_DB_NAME)
     print("This is the db access command: ", grant_db_access)
 
     try:
-        conn.execute(text(create_db_command), db=NEW_DB_NAME)
-        conn.execute(text(grant_db_access), db=NEW_DB_NAME)
+        conn.execute(text(create_db_command))
+        conn.execute(text(grant_db_access))
     except Exception:
         print("Unable to create database")
         raise Exception
