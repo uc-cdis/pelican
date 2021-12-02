@@ -10,6 +10,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     openjdk-8-jdk-headless \
+    libssl1.0.2 \
+    libgnutls30 \
     # dependency for pyscopg2
     libpq-dev \
     postgresql-client \
