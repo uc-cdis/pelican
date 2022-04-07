@@ -28,21 +28,27 @@ def get_ids_from_table(db, table, ids, id_column):
     data = None
 
     for ids_chunk in split_by_n(ids):
-        current_chunk_data = (
-            db.option(
-                "query",
-                "SELECT * FROM {} WHERE {} IN ('{}')".format(
-                    table, id_column, "','".join(ids_chunk)
-                ),
+        if ids_chunk:
+            current_chunk_data = (
+                db.option(
+                    "query",
+                    "SELECT * FROM {} WHERE {} IN ('{}')".format(
+                        table, id_column, "','".join(ids_chunk)
+                    ),
+                )
+                .option("fetchsize", "10000")
+                .load()
             )
-            .option("fetchsize", "10000")
-            .load()
-        )
 
-        if data:
-            data = data.union(current_chunk_data)
+            if data:
+                data = data.union(current_chunk_data)
+            else:
+                data = current_chunk_data
         else:
-            data = current_chunk_data
+            # TODO we need to use gen3logging
+            print(
+                f"[WARNING] Got a false-y ids_chunk by splitting ids: {ids}. Split: {split_by_n(ids)}"
+            )
 
     return data if data and data.first() else None
 
