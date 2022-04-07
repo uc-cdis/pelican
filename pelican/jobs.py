@@ -27,6 +27,9 @@ def split_by_n(input_list, n=10000):
 def get_ids_from_table(db, table, ids, id_column):
     data = None
 
+    if not table or not ids or not id_column:
+        return data
+
     for ids_chunk in split_by_n(ids):
         if ids_chunk:
             current_chunk_data = (
