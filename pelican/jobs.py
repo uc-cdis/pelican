@@ -28,10 +28,14 @@ def get_ids_from_table(db, table, ids, id_column):
     data = None
 
     if not table or not ids or not id_column:
+        # TODO we need to use gen3logging
+        print(
+            f"[WARNING] Got a false-y input to a query. table: {table}, ids: {ids}, id_column: {id_column}"
+        )
         return data
 
     for ids_chunk in split_by_n(ids):
-        if ids_chunk:
+        try:
             current_chunk_data = (
                 db.option(
                     "query",
@@ -47,8 +51,13 @@ def get_ids_from_table(db, table, ids, id_column):
                 data = data.union(current_chunk_data)
             else:
                 data = current_chunk_data
+        except TypeError:
+            print(
+                f"[ERROR] Query got invalid inputs: table: {table}, ids: {ids}, id_column: {id_column}."
+                f"Split: {split_by_n(ids)}"
+            )
+            pass
         else:
-            # TODO we need to use gen3logging
             print(
                 f"[WARNING] Got a false-y ids_chunk by splitting ids: {ids}. Split: {split_by_n(ids)}"
             )
