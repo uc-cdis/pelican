@@ -34,6 +34,13 @@ if __name__ == "__main__":
     filters = json.dumps({"filter": input_data.get("filter", {})})
     case_ids = gql.execute(filters=filters)
 
+    print("This is the node that we are doing the query on :", node)
+
+    print("This is the filter for the query:", filters)
+
+    print("These are the case ids:")
+    print(case_ids)
+
     with open("/peregrine-creds.json") as pelican_creds_file:
         peregrine_creds = json.load(pelican_creds_file)
 
