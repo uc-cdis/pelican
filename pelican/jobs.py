@@ -27,22 +27,40 @@ def split_by_n(input_list, n=10000):
 def get_ids_from_table(db, table, ids, id_column):
     data = None
 
-    for ids_chunk in split_by_n(ids):
-        current_chunk_data = (
-            db.option(
-                "query",
-                "SELECT * FROM {} WHERE {} IN ('{}')".format(
-                    table, id_column, "','".join(ids_chunk)
-                ),
-            )
-            .option("fetchsize", "10000")
-            .load()
+    if not table or not ids or not id_column:
+        # TODO we need to use gen3logging
+        print(
+            f"[WARNING] Got a false-y input to a query. table: {table}, ids: {ids}, id_column: {id_column}"
         )
+        return data
 
-        if data:
-            data = data.union(current_chunk_data)
+    for ids_chunk in split_by_n(ids):
+        try:
+            current_chunk_data = (
+                db.option(
+                    "query",
+                    "SELECT * FROM {} WHERE {} IN ('{}')".format(
+                        table, id_column, "','".join(ids_chunk)
+                    ),
+                )
+                .option("fetchsize", "10000")
+                .load()
+            )
+
+            if data:
+                data = data.union(current_chunk_data)
+            else:
+                data = current_chunk_data
+        except TypeError:
+            print(
+                f"[ERROR] Query got invalid inputs: table: {table}, ids: {ids}, id_column: {id_column}."
+                f"Split: {split_by_n(ids)}"
+            )
+            pass
         else:
-            data = current_chunk_data
+            print(
+                f"[WARNING] Got a false-y ids_chunk by splitting ids: {ids}. Split: {split_by_n(ids)}"
+            )
 
     return data if data and data.first() else None
 
