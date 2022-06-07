@@ -82,6 +82,7 @@ if __name__ == "__main__":
         with PFBWriter(avro_output) as pfb_file:
             _from_dict(pfb_file, dictionary_url)
             filename = pfb_file.name
+            print(f'debug - wrote pfb file at {filename}')
 
     with tempfile.NamedTemporaryFile(mode="w+b", delete=False) as avro_output:
         with PFBReader(filename) as reader:
@@ -89,12 +90,14 @@ if __name__ == "__main__":
                 pfb_file.copy_schema(reader)
                 pfb_file.write()
                 fname = pfb_file.name
+                print(f'debug - copied pfb file at {fname}')
 
     # If the input data specifies the root node to use, use
     # that root node. Otherwise fall back to $ROOT_NODE environment variable.
     root_node = input_data.get("root_node")
     if root_node is None:
         root_node = node
+    print(f'debug - root_node: {root_node}')
 
     # adding aligned_reads_index to the extra nodes on VCF files to make them inline with CRAM files
     if root_node == "simple_germline_variation":
@@ -102,11 +105,13 @@ if __name__ == "__main__":
             extra_nodes = ["aligned_reads_index"]
         else:
             extra_nodes.append("aligned_reads_index")
+    print(f'debug - extra_nodes: {extra_nodes}')
 
     with open(fname, "a+b") as avro_output:
         with PFBReader(filename) as reader:
             with PFBWriter(avro_output) as pfb_file:
                 pfb_file.copy_schema(reader)
+                print('debug - starting export_pfb_job')
                 export_pfb_job(
                     db,
                     pfb_file,
@@ -117,12 +122,15 @@ if __name__ == "__main__":
                     True,  # include upward nodes: project, program etc
                 )
 
+    print('debug - loading pelican creds')
     with open("/pelican-creds.json") as pelican_creds_file:
         pelican_creds = json.load(pelican_creds_file)
+        print(f'debug - should all be True: {"manifest_bucket_name" in pelican_creds} {"aws_access_key_id" in pelican_creds} {"aws_secret_access_key" in pelican_creds}')
 
     avro_filename = "{}.avro".format(
         datetime.now().strftime("export_%Y-%m-%dT%H:%M:%S")
     )
+    print(f'debug - avro_filename: {avro_filename}')
     s3file = s3upload_file(
         pelican_creds["manifest_bucket_name"],
         avro_filename,
@@ -130,6 +138,7 @@ if __name__ == "__main__":
         pelican_creds["aws_secret_access_key"],
         fname,
     )
+    print('debug - uploading to s3')
 
     if access_format == "guid":
         # calculate md5 sum
