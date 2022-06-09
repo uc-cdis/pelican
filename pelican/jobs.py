@@ -71,7 +71,7 @@ def export_pfb_job(
     pfb_file.open_mode = "a+b"
 
     start_time = datetime.now()
-    print(start_time)
+    print(f"Starting to export PFB at {start_time}")
 
     it = ddt.get_edges_by_node()
 
