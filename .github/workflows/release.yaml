@@ -33,8 +33,7 @@ jobs:
           python-version: '3.7'
       - name: Install Gen3 release-helper
         run: |
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-          . $HOME/.poetry/env
+          pip install poetry
           poetry build -vv
           pip install --user --editable git+https://github.com/uc-cdis/release-helper.git@master#egg=gen3git
           python -m gen3git --github-access-token ${{ secrets.GITHUB_TOKEN }} tag ${{ steps.bump_version.outputs.next-version }}
