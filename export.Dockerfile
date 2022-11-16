@@ -71,7 +71,7 @@ WORKDIR /pelican
 RUN pip install --upgrade pip
 
 # install poetry
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+RUN pip install poetry
 
 COPY . /$appname
 WORKDIR /$appname
@@ -80,11 +80,10 @@ WORKDIR /$appname
 COPY poetry.lock pyproject.toml /$appname/
 
 # install Indexd and dependencies via poetry
-RUN . $HOME/.poetry/env \
-    && poetry config virtualenvs.create false \
+RUN poetry config virtualenvs.create false \
     && poetry install -vv --no-dev --no-interaction \
     && poetry show -v
 
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT . $HOME/.poetry/env && poetry run python job_export.py
+ENTRYPOINT poetry run python job_export.py
