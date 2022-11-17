@@ -71,7 +71,7 @@ WORKDIR /pelican
 RUN pip install --upgrade pip
 
 # install poetry
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+RUN pip install --upgrade "poetry<1.2"
 
 COPY . /$appname
 WORKDIR /$appname
@@ -79,12 +79,11 @@ WORKDIR /$appname
 # cache so that poetry install will run if these files change
 COPY poetry.lock pyproject.toml /$appname/
 
-# install Indexd and dependencies via poetry
-RUN . $HOME/.poetry/env \
-    && poetry config virtualenvs.create false \
+# install package and dependencies via poetry
+RUN poetry config virtualenvs.create false \
     && poetry install -vv --no-dev --no-interaction \
     && poetry show -v
 
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT . $HOME/.poetry/env && poetry run python job_import.py
+ENTRYPOINT poetry run python job_import.py
