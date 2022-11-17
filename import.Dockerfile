@@ -71,7 +71,7 @@ WORKDIR /pelican
 RUN pip install --upgrade pip
 
 # install poetry
-RUN pip install poetry
+RUN pip install --upgrade "poetry<1.2"
 
 COPY . /$appname
 WORKDIR /$appname
@@ -79,7 +79,7 @@ WORKDIR /$appname
 # cache so that poetry install will run if these files change
 COPY poetry.lock pyproject.toml /$appname/
 
-# install Indexd and dependencies via poetry
+# install package and dependencies via poetry
 RUN poetry config virtualenvs.create false \
     && poetry install -vv --no-dev --no-interaction \
     && poetry show -v
