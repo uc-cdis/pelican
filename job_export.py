@@ -15,13 +15,16 @@ from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.jobs import export_pfb_job
 from pelican.s3 import s3upload_file
-from pelican.indexd import indexd_submit
+from pelican.indexd import indexd_submit, indexd_delete
+from pelican.mds import metadata_submit
 
 if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
     access_token = os.environ["ACCESS_TOKEN"]
     input_data = os.environ["INPUT_DATA"]
     access_format = os.environ["ACCESS_FORMAT"]
+    # the PFB file and indexd/mds records expire after 14 days by default
+    record_expiration_days = os.environ.get("RECORD_EXPIRATION_DAYS", 14)
 
     print("This is the format")
     print(access_format)
@@ -170,6 +173,12 @@ if __name__ == "__main__":
             [s3_url],
             {"md5": str(md5_digest)},
             authz,
+        )
+        metadata_submit(
+            hostname=COMMONS,
+            guid=indexd_record["did"],
+            access_token=access_token,
+            record_expiration_days=record_expiration_days,
         )
 
         # send s3 link and information to indexd to create guid and send it back
