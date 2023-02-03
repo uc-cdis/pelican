@@ -27,6 +27,8 @@ Start the Sower job by hitting the `POST <base URL>/job/dispatch` endpoint with 
 
 ## Setup
 
+TODO update
+
 1. Run `gen3 kube-setup-pelicanjob`. This will create the S3 bucket for exported PFB files.
 2. Setup and install [Sower](https://github.com/uc-cdis/sower).
 3. Update the manifest to include the configuration for the `pelican-export` job:

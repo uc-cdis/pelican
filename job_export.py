@@ -15,7 +15,7 @@ from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.jobs import export_pfb_job
 from pelican.s3 import s3upload_file
-from pelican.indexd import indexd_submit, indexd_delete
+from pelican.indexd import indexd_submit
 from pelican.mds import metadata_submit
 
 if __name__ == "__main__":
@@ -28,6 +28,17 @@ if __name__ == "__main__":
 
     print("This is the format")
     print(access_format)
+
+    with open("/pelican-creds.json") as pelican_creds_file:
+        pelican_creds = json.load(pelican_creds_file)
+    for key in [
+        "manifest_bucket_name",
+        "aws_access_key_id",
+        "aws_secret_access_key",
+        "fence_client_id",
+        "fence_client_secret",
+    ]:
+        assert pelican_creds.get("key"), f"No '{key}' in config"
 
     input_data = json.loads(input_data)
 
@@ -120,9 +131,6 @@ if __name__ == "__main__":
                     True,  # include upward nodes: project, program etc
                 )
 
-    with open("/pelican-creds.json") as pelican_creds_file:
-        pelican_creds = json.load(pelican_creds_file)
-
     avro_filename = "{}.avro".format(
         datetime.now().strftime("export_%Y-%m-%dT%H:%M:%S")
     )
@@ -174,6 +182,8 @@ if __name__ == "__main__":
             {"md5": str(md5_digest)},
             authz,
         )
+
+        # TODO use pelican_creds["fence_client_id"] pelican_creds["fence_client_secret"]
         metadata_submit(
             hostname=COMMONS,
             guid=indexd_record["did"],
