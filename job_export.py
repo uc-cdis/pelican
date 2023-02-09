@@ -10,13 +10,14 @@ from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
+import requests
 
 from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.graphql.guppy_gql import GuppyGQL
 from pelican.jobs import export_pfb_job
 from pelican.s3 import s3upload_file
 from pelican.indexd import indexd_submit
-from pelican.mds import metadata_submit
+from pelican.mds import metadata_submit_expiration
 
 if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
@@ -173,6 +174,20 @@ if __name__ == "__main__":
 
         s3_url = "s3://" + pelican_creds["manifest_bucket_name"] + "/" + avro_filename
 
+        # exchange the client ID and secret for an access token
+        r = requests.post(
+            f"{COMMONS}user/oauth2/token?grant_type=client_credentials&scope=openid",
+            auth=(
+                pelican_creds["fence_client_id"],
+                pelican_creds["fence_client_secret"],
+            ),
+        )
+        if r.status_code != 200:
+            raise Exception(
+                f"Failed to obtain access token using OIDC client credentials - {r.status_code}:\n{r.text}"
+            )
+        client_access_token = r.json()["access_token"]
+
         indexd_record = indexd_submit(
             COMMONS,
             indexd_creds["user_db"]["gdcapi"],
@@ -183,11 +198,10 @@ if __name__ == "__main__":
             authz,
         )
 
-        # TODO use pelican_creds["fence_client_id"] pelican_creds["fence_client_secret"]
-        metadata_submit(
+        metadata_submit_expiration(
             hostname=COMMONS,
             guid=indexd_record["did"],
-            access_token=access_token,
+            access_token=client_access_token,
             record_expiration_days=record_expiration_days,
         )
 

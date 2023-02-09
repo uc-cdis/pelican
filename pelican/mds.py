@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import requests
 
 
-def metadata_submit(hostname, guid, access_token, record_expiration_days):
+def metadata_submit_expiration(hostname, guid, access_token, record_expiration_days):
     expires_at = (datetime.now() + timedelta(days=record_expiration_days)).timestamp()
     r = requests.post(
         f"{hostname}mds/metadata/{guid}",
