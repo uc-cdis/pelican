@@ -39,7 +39,7 @@ if __name__ == "__main__":
         "fence_client_id",
         "fence_client_secret",
     ]:
-        assert pelican_creds.get("key"), f"No '{key}' in config"
+        assert pelican_creds.get(key), f"No '{key}' in config"
 
     input_data = json.loads(input_data)
 
