@@ -3,12 +3,17 @@ import requests
 
 
 def metadata_submit_expiration(hostname, guid, access_token, record_expiration_days):
+    url = f"{hostname}mds/metadata/{guid}"
+    body = {"_expires_at": expires_at}
+    print("-----------------------------------------------------")
+    print(url)
+    print(body)
+    print("-----------------------------------------------------")
+
     expires_at = (datetime.now() + timedelta(days=record_expiration_days)).timestamp()
     r = requests.post(
-        f"{hostname}mds/metadata/{guid}",
-        json={"_expires_at": expires_at},
-        # headers={"content-type": "application/json"},
-        # auth=("gdcapi", str(access_token)),
+        url,
+        json=body,
         headers={"Authorization": f"bearer {access_token}"},
     )
     if r.status_code != 200:
