@@ -15,7 +15,7 @@ def metadata_submit_expiration(hostname, guid, access_token, record_expiration_d
         json=body,
         headers={"Authorization": f"bearer {access_token}"},
     )
-    if r.status_code != 200:
+    if r.status_code != 201:
         raise Exception(
             f"Submission to metadata-service failed with {r.status_code}:\n{r.text}"
         )
