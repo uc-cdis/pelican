@@ -1,6 +1,5 @@
 import requests
 import json
-import base64
 
 
 def indexd_submit(

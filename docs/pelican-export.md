@@ -27,9 +27,14 @@ Start the Sower job by hitting the `POST <base URL>/job/dispatch` endpoint with 
 
 ## Setup
 
-1. Run `gen3 kube-setup-pelicanjob`. This will create the S3 bucket for exported PFB files.
-2. Setup and install [Sower](https://github.com/uc-cdis/sower).
-3. Update the manifest to include the configuration for the `pelican-export` job:
+1. This job should be deployed alongside the `metadata-delete-expired-objects` cronjob:
+    - Add `"metadata-delete-expired-objects": "quay.io/cdis/metadata-delete-expired-objects:<version>"` to the `versions` block of the manifest.
+    - Run `gen3 kube-setup-metadata-delete-expired-objects-cronjob`.
+    - Grant the `metadata-delete-expired-objects-job` client access to `(resource=/mds_gateway, method=access, service=mds_gateway)` and `(resource=/programs, method=delete, service=fence)` in the `user.yaml`.
+2. Run `gen3 kube-setup-pelicanjob`. This will create the S3 bucket for exported PFB files and the Fence client for submitting to the metadata service.
+3. Grant the `pelican-export-job` client access to `(resource=/mds_gateway, method=access, service=mds_gateway)` in the `user.yaml`.
+4. Set up and deploy [Sower](https://github.com/uc-cdis/sower).
+5. Update the manifest to include the configuration for the `pelican-export` job:
 
 ##### Manifest configuration
 
