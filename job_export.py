@@ -32,13 +32,14 @@ if __name__ == "__main__":
 
     with open("/pelican-creds.json") as pelican_creds_file:
         pelican_creds = json.load(pelican_creds_file)
-    for key in [
+    required_keys = [
         "manifest_bucket_name",
         "aws_access_key_id",
         "aws_secret_access_key",
-        "fence_client_id",
-        "fence_client_secret",
-    ]:
+    ]
+    if access_format == "guid":
+        required_keys += ["fence_client_id", "fence_client_secret"]
+    for key in required_keys:
         assert pelican_creds.get(key), f"No '{key}' in config"
 
     input_data = json.loads(input_data)
