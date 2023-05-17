@@ -1,29 +1,53 @@
-FROM quay.io/cdis/python:3.7-stretch
+FROM quay.io/cdis/amazonlinux:latest
 
 ENV appname=pelican
 
-ENV DEBIAN_FRONTEND=noninteractive
 
 #RUN mkdir -p /usr/share/man/man1
 #RUN mkdir -p /usr/share/man/man7
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    openjdk-8-jdk-headless \
-    libssl1.0.2 \
-    libgnutls30 \
-    # dependency for pyscopg2
-    libpq-dev \
-    postgresql-client \
+RUN dnf update && dnf install -y \
+    java-1.8.0-amazon-corretto \
+    python3-devel \
+    gnutls \
     wget \
-    unzip \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
+    make \
+    gcc \
+    perl-core \
+    zlib-devel \
+    postgresql-libs \
+    postgresql15 \
+    gnutls-c++ \
+    tar \
+    && rm -rf /var/cache/yum
+
+# install poetry on container
+RUN pip install poetry \
+    && poetry config virtualenvs.create false
+
+
+## install python 3.8.12 from source and pip on container
+#RUN wget https://www.python.org/ftp/python/3.8.12/Python-3.8.12.tgz \
+#    && tar -xvf Python-3.8.12.tgz \
+#    && cd Python-3.8.12 \
+#    && ./configure --enable-optimizations \
+#    && make altinstall \
+#    && pip install --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade pip \
+#    && python3.8 -m pip install --upgrade setuptools \
+#    && python3.8 -m pip install --upgrade wheel \
+#    && python3.8 -m pip install --upgrade virtualenv \
+#    && python3.8 -m pip install --upgrade poetry \
+#    && python3.8 -m pip install --upgrade pyOpenSSL \
+#    && python3.8 -m pip install --upgrade cryptography \
+#    && python3.8 -m pip install --upgrade psycopg2-binary \
+#    && cd .. \
+#    && rm -rf Python-3.8.12 \
+#    && rm Python-3.8.12.tgz \
+
 
 ENV HADOOP_VERSION="3.2.1"
 ENV HADOOP_HOME="/hadoop" \
     HADOOP_INSTALLATION_URL="http://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz"
-
 RUN wget ${HADOOP_INSTALLATION_URL} \
     && mkdir -p $HADOOP_HOME \
     && tar -xvf hadoop-${HADOOP_VERSION}.tar.gz -C ${HADOOP_HOME} --strip-components 1 \
@@ -67,12 +91,6 @@ RUN mkdir -p $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEPER_HOME
 ENV PATH=${SQOOP_HOME}/bin:${HADOOP_HOME}/sbin:$HADOOP_HOME/bin:${JAVA_HOME}/bin:${PATH}
 
 WORKDIR /pelican
-
-RUN pip install --upgrade pip
-
-# install poetry
-RUN pip install --upgrade "poetry<1.2"
-
 COPY . /$appname
 WORKDIR /$appname
 
@@ -81,7 +99,7 @@ COPY poetry.lock pyproject.toml /$appname/
 
 # install package and dependencies via poetry
 RUN poetry config virtualenvs.create false \
-    && poetry install -vv --no-dev --no-interaction \
+    && poetry install -vv --only main --no-interaction \
     && poetry show -v
 
 ENV PYTHONUNBUFFERED=1

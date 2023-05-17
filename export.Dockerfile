@@ -1,4 +1,4 @@
-FROM quay.io/cdis/python:3.7-stretch
+FROM quay.io/cdis/amazonlinux:latest
 
 ENV appname=pelican
 
@@ -7,18 +7,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 #RUN mkdir -p /usr/share/man/man1
 #RUN mkdir -p /usr/share/man/man7
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    openjdk-8-jdk-headless \
-    libssl1.0.2 \
-    libgnutls30 \
+RUN dnf update && dnf install -y \
+    java-1.8.0-amazon-corretto \
+    gnutls \
     # dependency for pyscopg2
-    libpq-dev \
+    postgresql-libs \
     postgresql-client \
-    wget \
-    unzip \
     g++ \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/cache/yum
 
 ENV HADOOP_VERSION="3.2.1"
 ENV HADOOP_HOME="/hadoop" \

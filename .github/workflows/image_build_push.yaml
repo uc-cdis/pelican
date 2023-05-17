@@ -7,7 +7,7 @@ jobs:
     name: Build and Push Pelican Export Image
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
-      DOCKERFILE_LOCATION: "./export.Dockerfile"
+      DOCKERFILE_LOCATION: "./export.Dockerfile.import"
       OVERRIDE_REPO_NAME: "pelican-export"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
