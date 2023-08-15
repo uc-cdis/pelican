@@ -1,4 +1,4 @@
-FROM quay.io/cdis/python:3.7-stretch
+FROM quay.io/cdis/python:python3.9-buster-2.0.0
 
 ENV appname=pelican
 
@@ -9,8 +9,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    openjdk-8-jdk-headless \
-    libssl1.0.2 \
     libgnutls30 \
     # dependency for pyscopg2
     libpq-dev \
@@ -76,7 +74,8 @@ RUN pip install --upgrade "poetry<1.2"
 COPY . /$appname
 WORKDIR /$appname
 
-# cache so that poetry install will run if these files change
+# copy ONLY poetry artifact, install the dependencies but not fence
+# this will make sure than the dependencies is cached
 COPY poetry.lock pyproject.toml /$appname/
 
 # install package and dependencies via poetry
