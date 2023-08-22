@@ -14,6 +14,8 @@ class GuppyGQL(BaseGQL):
         if filters:
             query_json["variables"] = filters
 
+        print("THIS IS THE QUERY THAT WE ARE EXECUTING: ", json.dumps(query_json))
+
         r = BaseGQL._execute(self, query_json)
         try:
             count = r["data"]["_aggregation"][self.node]["_totalCount"]

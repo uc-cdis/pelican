@@ -22,7 +22,13 @@ from pelican.mds import metadata_submit_expiration
 if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
     access_token = os.environ["ACCESS_TOKEN"]
+
+    print("DEBUG:: THIS IS THE ACCESS TOKEN THAT WE ARE USING", access_token)
+
     input_data = os.environ["INPUT_DATA"]
+
+    print("DEBUG:: THIS IS THE INPUT DATA", input_data)
+
     access_format = os.environ["ACCESS_FORMAT"]
     # the PFB file and indexd/mds records expire after 14 days by default
     record_expiration_days = os.environ.get("RECORD_EXPIRATION_DAYS", 14)
