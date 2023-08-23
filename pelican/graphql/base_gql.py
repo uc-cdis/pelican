@@ -13,6 +13,7 @@ class BaseGQL:
         raise NotImplementedError
 
     def _execute(self, query):
+        print(query)
         r = requests.post(self.url, json=query, headers=self.headers)
 
         if r.status_code == 200:
