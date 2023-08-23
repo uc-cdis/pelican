@@ -15,7 +15,7 @@ class BaseGQL:
     def _execute(self, query):
         print(query)
         r = requests.post(self.url, json=query, headers=self.headers)
-
+        print(r)
         if r.status_code == 200:
             return r.json()
         else:
