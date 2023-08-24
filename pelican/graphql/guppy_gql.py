@@ -12,11 +12,7 @@ class GuppyGQL(BaseGQL):
         query = f"query($filter: JSON) {{ _aggregation {{ {self.node}(filter: $filter, accessibility: accessible) {{ _totalCount }} }} }}"
         query_json = {"query": query}
         if filters:
-            # make sure that filters is a dict at this point
-            # fitlers = json.loads(filters)
             query_json["variables"] = filters
-
-        print("THIS IS THE QUERY THAT WE ARE EXECUTING: ", json.dumps(query_json))
 
         r = BaseGQL._execute(self, query_json)
         try:
