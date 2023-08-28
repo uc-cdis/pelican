@@ -10,7 +10,7 @@ The `pelican-export` job takes a Guppy filter and a user's access token as input
 
 ## PFB Import [![Docker Repository on Quay](https://quay.io/repository/cdis/pelican-import/status "Docker Repository on Quay")](https://quay.io/repository/cdis/pelican-import)
 
-The `pelican-import` job is only used to restore a PFB into a clean database.
+The `pelican-import` job is only used to restore a PFB into a clean database. <dummy PR>
 
 [See configuration instructions](docs/pelican-import.md)
 
