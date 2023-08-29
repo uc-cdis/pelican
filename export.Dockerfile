@@ -20,6 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
+RUN echo "hello"
+
 ENV HADOOP_VERSION="3.2.1"
 ENV HADOOP_HOME="/hadoop" \
     HADOOP_INSTALLATION_URL="http://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz"
