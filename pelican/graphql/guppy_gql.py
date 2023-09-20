@@ -40,6 +40,11 @@ class GuppyGQL(BaseGQL):
         query_json = {"query": query}
         if filters:
             query_json["variables"] = filters
+            # Ensure that the variables are encoded for the POST request
+            var = query_json["variables"]
+            var = json.loads(var)
+            query_json["variables"] = var
+
         r = BaseGQL._execute(self, query_json)
         try:
             r = r["data"][self.node]

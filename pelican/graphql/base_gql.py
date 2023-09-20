@@ -14,11 +14,6 @@ class BaseGQL:
         raise NotImplementedError
 
     def _execute(self, query):
-        # Ensure that the variables are encoded for the POST request
-        var = query["variables"]
-        var = json.loads(var)
-        query["variables"] = var
-
         r = requests.post(self.url, json=query, headers=self.headers)
         
         if r.status_code == 200:
