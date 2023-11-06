@@ -2,6 +2,7 @@ import requests
 
 import boto3
 from botocore.exceptions import ClientError
+from botocore.config import Config
 
 
 def s3upload_file(
@@ -17,10 +18,12 @@ def s3upload_file(
     :param expiration:
     :return: presigned URL on success, False on failure
     """
+    config = Config(signature_version="s3v4")
     client = boto3.client(
         "s3",
         aws_access_key_id=aws_access_key_id,
         aws_secret_access_key=aws_secret_access_key,
+        config=config,
     )
 
     client.upload_file(filepath, bucket, key)
