@@ -43,7 +43,7 @@ def s3download_file(
     :param aws_access_key_id:
     :param aws_secret_access_key:
     :param key: the name of the key in S3 for this download
-    :param fileobj: file-like object to download into
+    :param fi leobj: file-like object to download into
     :param filepath: local path to the file
     :return:
     """
