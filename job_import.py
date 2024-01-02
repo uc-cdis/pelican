@@ -13,6 +13,8 @@ from pelican.s3 import download_file
 
 from sqlalchemy.sql import text
 
+from gdcdatamodel.models.submission import Base
+
 if __name__ == "__main__":
     access_token = os.environ["ACCESS_TOKEN"]
     hostname = os.environ["GEN3_HOSTNAME"]
@@ -74,6 +76,9 @@ if __name__ == "__main__":
     except Exception:
         print("Unable to create database")
         raise Exception
+
+    # create db transaction tables
+    Base.metadata.create_all(engine)
 
     conn.close()
 
