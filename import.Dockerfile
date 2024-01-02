@@ -70,7 +70,7 @@ WORKDIR /pelican
 RUN pip install --upgrade pip
 
 # install poetry
-RUN pip install --upgrade "poetry<1.2"
+RUN pip install --upgrade "poetry"
 
 COPY . /$appname
 WORKDIR /$appname
