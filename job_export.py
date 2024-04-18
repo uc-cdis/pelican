@@ -56,7 +56,7 @@ if __name__ == "__main__":
     DB_USER = os.getenv("DB_USER")
     DB_PASS = os.getenv("DB_PASS")
     DB_URL = f"jdbc:postgresql://{DB_HOST}/{DB_DATABASE}"
-        
+
     dictionary_url = os.environ["DICTIONARY_URL"]
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
@@ -167,9 +167,7 @@ if __name__ == "__main__":
         hostname = os.environ["GEN3_HOSTNAME"]
         COMMONS = "https://" + hostname + "/"
 
-        # try sending to indexd
-        with open("/indexd-creds.json") as indexd_creds_file:
-            indexd_creds = json.load(indexd_creds_file)
+        indexd_creds = os.getenv("SHEEPDOG")
 
         s3_url = "s3://" + pelican_creds["manifest_bucket_name"] + "/" + avro_filename
 
@@ -189,7 +187,7 @@ if __name__ == "__main__":
 
         indexd_record = indexd_submit(
             COMMONS,
-            indexd_creds["user_db"]["gdcapi"],
+            indexd_creds,
             avro_filename,
             os.stat(fname).st_size,
             [s3_url],
