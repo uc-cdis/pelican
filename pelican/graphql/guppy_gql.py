@@ -23,7 +23,7 @@ class GuppyGQL(BaseGQL):
         return count
 
     def _download_endpoint(self, filters=None):
-        print("fallback to /download endpoint")
+        print("fallback to /download endpoint.")
         self.url = f"{self.hostname}/guppy/download"
         query = {
             "type": self.node,
