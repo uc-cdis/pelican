@@ -27,7 +27,7 @@ if __name__ == "__main__":
     with open("/sheepdog-creds.json") as pelican_creds_file:
         sheepdog_creds = json.load(pelican_creds_file)
 
-    with open("admin-servers.json") as dbfarm_file:
+    with open("/admin-servers.json") as dbfarm_file:
         servers = json.load(dbfarm_file)
 
     # we look through the servers in the dbfarm to find the sheepdog db server
