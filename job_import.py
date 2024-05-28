@@ -27,6 +27,14 @@ if __name__ == "__main__":
     with open("/sheepdog-creds.json") as pelican_creds_file:
         sheepdog_creds = json.load(pelican_creds_file)
 
+    with open("admin-servers.json") as dbfarm_file:
+        servers = json.load(dbfarm_file)
+
+    # we look through the servers in the dbfarm to find the sheepdog db server
+    for s in servers:
+        if servers[s]["db_host"] == sheepdog_creds["db_host"]:
+            db_server = servers[s]
+
     if "guid" in input_data_json:
         print("a guid was supplied to the job")
         print("we are getting a signed url for the given guid")
@@ -48,15 +56,15 @@ if __name__ == "__main__":
     # DB_URL = "jdbc:postgresql://{}/{}".format(
     #     sheepdog_creds["db_host"], sheepdog_creds["db_database"]
     # )
-    DB_USER = sheepdog_creds["db_username"]
-    DB_PASS = sheepdog_creds["db_password"]
+    DB_USER = db_server["db_username"]
+    DB_PASS = db_server["db_password"]
 
     NEW_DB_NAME = input_data_json["db"]
 
     # create a database in the name that was passed through
     engine = sqlalchemy.create_engine(
         "postgresql://{user}:{password}@{host}/postgres".format(
-            user=DB_USER, password=DB_PASS, host=sheepdog_creds["db_host"]
+            user=DB_USER, password=DB_PASS, host=db_server["db_host"]
         )
     )
     conn = engine.connect()
