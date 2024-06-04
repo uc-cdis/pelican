@@ -24,8 +24,8 @@ if __name__ == "__main__":
 
     dictionary_url = os.environ["DICTIONARY_URL"]
 
-    with open("/sheepdog-creds.json") as pelican_creds_file:
-        sheepdog_creds = json.load(pelican_creds_file)
+    with open("/sheepdog-creds.json") as sheepdog_creds_file:
+        sheepdog_creds = json.load(sheepdog_creds_file)
 
     with open("/admin-servers.json") as dbfarm_file:
         servers = json.load(dbfarm_file)
@@ -56,6 +56,9 @@ if __name__ == "__main__":
     # DB_URL = "jdbc:postgresql://{}/{}".format(
     #     sheepdog_creds["db_host"], sheepdog_creds["db_database"]
     # )
+
+    # setup DB engine for postgres user
+    # this is needed as only the postgres user can create a new database and the sheepdog user cannot
     DB_USER = db_server["db_username"]
     DB_PASS = db_server["db_password"]
 
@@ -76,15 +79,8 @@ if __name__ == "__main__":
     create_db_command = text(create_str.format(db=NEW_DB_NAME))
     print("This is the db create command: ", create_db_command)
 
-    grant_str = "grant all on database {db} to sheepdog with grant option"
-    grant_db_access = text(grant_str.format(db=NEW_DB_NAME))
-    print("This is the db access command: ", grant_db_access)
-
     try:
-        # conn.execute(create_db_command, db=(NEW_DB_NAME.replace("'", "")))
-        # conn.execute(grant_db_access, db=(NEW_DB_NAME.replace("'", "")))
         conn.execute(create_db_command)
-        conn.execute(grant_db_access)
     except Exception:
         print("Unable to create database")
         raise Exception
@@ -92,6 +88,32 @@ if __name__ == "__main__":
     # create db transaction tables
     Base.metadata.create_all(engine)
 
+    # close db connection for root user
+    conn.close()
+
+    # setup db connection for sheepdog user instead of root user
+    DB_USER = sheepdog_creds["db_username"]
+    DB_PASS = sheepdog_creds["db_password"]
+
+    engine = sqlalchemy.create_engine(
+        "postgresql://{user}:{password}@{host}/postgres".format(
+            user=DB_USER, password=DB_PASS, host=sheepdog_creds["db_host"]
+        )
+    )
+    conn = engine.connect()
+    conn.execute("commit")
+
+    grant_str = "grant all on database {db} to sheepdog with grant option"
+    grant_db_access = text(grant_str.format(db=NEW_DB_NAME))
+    print("This is the db access command: ", grant_db_access)
+
+    try:
+        conn.execute(grant_db_access)
+    except Exception:
+        print("Unable to grant db access")
+        raise Exception
+
+    # close connection for sheepdog user
     conn.close()
 
     DB_URL = "jdbc:postgresql://{}/{}".format(sheepdog_creds["db_host"], NEW_DB_NAME)
