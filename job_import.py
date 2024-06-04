@@ -81,6 +81,7 @@ if __name__ == "__main__":
 
     try:
         conn.execute(create_db_command)
+        conn.commit()
     except Exception:
         print("Unable to create database")
         raise Exception
@@ -91,6 +92,7 @@ if __name__ == "__main__":
 
     try:
         conn.execute(grant_db_access)
+        conn.commit()
     except Exception:
         print("Unable to grant db access")
         raise Exception
