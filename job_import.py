@@ -86,6 +86,10 @@ if __name__ == "__main__":
     try:
         conn.execute(create_db_command)
         conn.execute("commit")
+
+        # create db transaction tables
+        Base.metadata.create_all(engine)
+
         conn.execute(grant_db_access)
         conn.execute("commit")
     except Exception:
@@ -96,9 +100,6 @@ if __name__ == "__main__":
     # except Exception:
     #     print("Unable to grant db access")
     #     raise Exception
-
-    # create db transaction tables
-    Base.metadata.create_all(engine)
 
     # close db connection for root user
     conn.close()
