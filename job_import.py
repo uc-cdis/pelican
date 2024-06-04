@@ -75,25 +75,24 @@ if __name__ == "__main__":
 
     print("we are creating a new database named ", NEW_DB_NAME)
 
-    create_str = "create database {db}"
+    create_str = "CREATE DATABASE {db}"
     create_db_command = text(create_str.format(db=NEW_DB_NAME))
     print("This is the db create command: ", create_db_command)
-
-    try:
-        conn.execute(create_db_command)
-    except Exception:
-        print("Unable to create database")
-        raise Exception
 
     grant_str = "GRANT ALL PRIVILEGES ON {db} TO sheepdog WITH GRANT OPTION"
     grant_db_access = text(grant_str.format(db=NEW_DB_NAME))
     print("This is the db access command: ", grant_db_access)
-
     try:
+        conn.execute(create_db_command)
         conn.execute(grant_db_access)
     except Exception:
-        print("Unable to grant db access")
+        print("Unable to create database")
         raise Exception
+
+    # try:
+    # except Exception:
+    #     print("Unable to grant db access")
+    #     raise Exception
 
     # create db transaction tables
     Base.metadata.create_all(engine)
