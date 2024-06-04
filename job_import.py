@@ -91,30 +91,30 @@ if __name__ == "__main__":
     # close db connection for root user
     conn.close()
 
-    # setup db connection for sheepdog user instead of root user
-    DB_USER = sheepdog_creds["db_username"]
-    DB_PASS = sheepdog_creds["db_password"]
+    # # setup db connection for sheepdog user instead of root user
+    # DB_USER = sheepdog_creds["db_username"]
+    # DB_PASS = sheepdog_creds["db_password"]
 
-    engine = sqlalchemy.create_engine(
-        "postgresql://{user}:{password}@{host}/postgres".format(
-            user=DB_USER, password=DB_PASS, host=sheepdog_creds["db_host"]
-        )
-    )
-    conn = engine.connect()
-    conn.execute("commit")
+    # engine = sqlalchemy.create_engine(
+    #     "postgresql://{user}:{password}@{host}/postgres".format(
+    #         user=DB_USER, password=DB_PASS, host=sheepdog_creds["db_host"]
+    #     )
+    # )
+    # conn = engine.connect()
+    # conn.execute("commit")
 
-    grant_str = "grant all on database {db} to sheepdog with grant option"
-    grant_db_access = text(grant_str.format(db=NEW_DB_NAME))
-    print("This is the db access command: ", grant_db_access)
+    # grant_str = "grant all on database {db} to sheepdog with grant option"
+    # grant_db_access = text(grant_str.format(db=NEW_DB_NAME))
+    # print("This is the db access command: ", grant_db_access)
 
-    try:
-        conn.execute(grant_db_access)
-    except Exception:
-        print("Unable to grant db access")
-        raise Exception
+    # try:
+    #     conn.execute(grant_db_access)
+    # except Exception:
+    #     print("Unable to grant db access")
+    #     raise Exception
 
-    # close connection for sheepdog user
-    conn.close()
+    # # close connection for sheepdog user
+    # conn.close()
 
     DB_URL = "jdbc:postgresql://{}/{}".format(sheepdog_creds["db_host"], NEW_DB_NAME)
 
