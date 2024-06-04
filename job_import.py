@@ -85,7 +85,9 @@ if __name__ == "__main__":
     print("This is the db access command: ", grant_db_access)
     try:
         conn.execute(create_db_command)
+        conn.execute("commit")
         conn.execute(grant_db_access)
+        conn.execute("commit")
     except Exception:
         print("Unable to create database")
         raise Exception
