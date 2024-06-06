@@ -88,48 +88,30 @@ if __name__ == "__main__":
         conn.execute(create_db_command)
         conn.execute("commit")
 
-        # create db transaction tables
-        Base.metadata.create_all(engine)
-
         conn.execute(grant_db_access)
         conn.execute("commit")
     except Exception as e:
         print("Unable to create database... error: ", e)
         raise Exception
 
-    # try:
-    # except Exception:
-    #     print("Unable to grant db access")
-    #     raise Exception
-
     # close db connection for root user
     conn.close()
 
-    # # # setup db connection for sheepdog user instead of root user
-    # DB_USER = sheepdog_creds["db_username"]
-    # DB_PASS = sheepdog_creds["db_password"]
+    # setup the transaction tables for the db
+    print("Setting up transaction tables for new sheepdog db")
+    PORT = "5432"
+    engine = create_engine(
+        "postgres://{user}:{password}@{host}:{port}/{database}".format(
+            user=DB_USER,
+            host=db_server["db_host"],
+            port=PORT,
+            password=DB_PASS,
+            database=NEW_DB_NAME,
+        )
+    )
 
-    # engine = sqlalchemy.create_engine(
-    #     "postgresql://{user}:{password}@{host}/postgres".format(
-    #         user=DB_USER, password=DB_PASS, host=sheepdog_creds["db_host"]
-    #     )
-    # )
-    # conn = engine.connect()
-    # conn.execute("commit")
-
-    # grant_str = "GRANT ALL ON DATABASE {db} TO sheepdog WITH GRANT OPTION"
-    # grant_db_access = text(grant_str.format(db=NEW_DB_NAME))
-    # print("This is the db access command: ", grant_db_access)
-
-    # try:
-    #     conn.execute(grant_db_access)
-    #     conn.execute("commit")
-    # except Exception:
-    #     print("Unable to grant db access")
-    #     raise Exception
-
-    # # close connection for sheepdog user
-    # conn.close()
+    # create db transaction tables
+    Base.metadata.create_all(engine)
 
     DB_URL = "jdbc:postgresql://{}/{}".format(sheepdog_creds["db_host"], NEW_DB_NAME)
 
