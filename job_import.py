@@ -68,8 +68,7 @@ if __name__ == "__main__":
     engine = sqlalchemy.create_engine(
         "postgresql://{user}:{password}@{host}/postgres".format(
             user=DB_USER, password=DB_PASS, host=db_server["db_host"]
-        ),
-        isolation_level="AUTOCOMMIT",
+        )
     )
     conn = engine.connect()
     conn.execute("commit")
