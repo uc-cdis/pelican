@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # setup the transaction tables for the db
     print("Setting up transaction tables for new sheepdog db")
     PORT = "5432"
-    engine = create_engine(
+    engine = sqlalchemy.create_engine(
         "postgres://{user}:{password}@{host}:{port}/{database}".format(
             user=DB_USER,
             host=db_server["db_host"],
