@@ -79,7 +79,7 @@ if __name__ == "__main__":
     create_db_command = create_str.format(db=NEW_DB_NAME)
     print("This is the db create command: ", create_db_command)
 
-    grant_str = "GRANT ALL PRIVILEGES ON {db} TO sheepdog WITH GRANT OPTION"
+    grant_str = "GRANT ALL ON DATABASE {db} TO sheepdog WITH GRANT OPTION"
     grant_db_access = grant_str.format(db=NEW_DB_NAME)
     print("This is the db access command: ", grant_db_access)
     try:
