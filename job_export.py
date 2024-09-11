@@ -45,7 +45,7 @@ if __name__ == "__main__":
     input_data = json.loads(input_data)
 
     gql = GuppyGQL(
-        node=node, hostname="http://revproxy-service", access_token=access_token
+        node=node, hostname="http://revproxy-service.default", access_token=access_token
     )
     filters = json.dumps({"filter": input_data.get("filter", {})})
     case_ids = gql.execute(filters=filters)
