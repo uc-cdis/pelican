@@ -20,6 +20,9 @@ RUN pipx install poetry
 ENV PATH="/home/gen3/.local/bin:${PATH}"
 USER root
 
+# Builder stage
+FROM base AS builder
+
 RUN dnf update && dnf install -y \
     java-1.8.0-amazon-corretto \
     python3-devel \
@@ -33,10 +36,8 @@ RUN dnf update && dnf install -y \
     postgresql15 \
     gnutls-c++ \
     tar \
+    postgresql-devel \
     && rm -rf /var/cache/yum
-
-# Builder stage
-FROM base AS builder
 
 ENV HADOOP_VERSION="3.2.1"
 ENV HADOOP_HOME="/hadoop" \
@@ -90,9 +91,9 @@ ENV PATH=${SQOOP_HOME}/bin:${HADOOP_HOME}/sbin:$HADOOP_HOME/bin:${JAVA_HOME}/bin
 
 WORKDIR /${appname}
 
-# install poetry on container
-RUN pip install poetry \
-    && poetry config
+# # install poetry on container
+# RUN pip install poetry \
+#     && poetry config
 
 COPY . /${appname}
 
@@ -103,7 +104,7 @@ COPY poetry.lock pyproject.toml /${appname}/
 
 RUN poetry install -vv --no-interaction --without dev
 
-ENV PATH="$(poetry env info --path)/bin:$PATH"
+# ENV PATH="$(poetry env info --path)/bin:$PATH"
 
 # Final stage
 FROM base
