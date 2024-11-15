@@ -1,23 +1,42 @@
-FROM quay.io/cdis/python:python3.9-buster-2.0.0
+ARG AZLINUX_BASE_VERSION=master
+
+# Base stage with python-build-base
+FROM quay.io/cdis/python-build-base:${AZLINUX_BASE_VERSION} AS base
 
 ENV appname=pelican
 
-ENV DEBIAN_FRONTEND=noninteractive
+# create gen3 user
+# Create a group 'gen3' with GID 1000 and a user 'gen3' with UID 1000
+RUN groupadd -g 1000 gen3 && \
+    useradd -m -s /bin/bash -u 1000 -g gen3 gen3
 
-#RUN mkdir -p /usr/share/man/man1
-#RUN mkdir -p /usr/share/man/man7
+# Install pipx
+RUN python3 -m pip install pipx && \
+    python3 -m pipx ensurepath
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libgnutls30 \
-    openjdk-11-jre-headless \
-    # dependency for pyscopg2
-    libpq-dev \
-    postgresql-client \
+USER gen3
+# Install Poetry via pipx
+RUN pipx install poetry
+ENV PATH="/home/gen3/.local/bin:${PATH}"
+USER root
+
+RUN dnf update && dnf install -y \
+    java-1.8.0-amazon-corretto \
+    python3-devel \
+    gnutls \
     wget \
-    unzip \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
+    make \
+    gcc \
+    perl-core \
+    zlib-devel \
+    postgresql-libs \
+    postgresql15 \
+    gnutls-c++ \
+    tar \
+    && rm -rf /var/cache/yum
+
+# Builder stage
+FROM base AS builder
 
 ENV HADOOP_VERSION="3.2.1"
 ENV HADOOP_HOME="/hadoop" \
@@ -27,7 +46,8 @@ RUN wget ${HADOOP_INSTALLATION_URL} \
     && mkdir -p $HADOOP_HOME \
     && tar -xvf hadoop-${HADOOP_VERSION}.tar.gz -C ${HADOOP_HOME} --strip-components 1 \
     && rm hadoop-${HADOOP_VERSION}.tar.gz \
-    && rm -rf $HADOOP_HOME/share/doc
+    && rm -rf $HADOOP_HOME/share/doc \
+    && chown -R gen3:gen3 $HADOOP_HOME
 
 ENV SQOOP_VERSION="1.4.7"
 ENV SQOOP_HOME="/sqoop" \
@@ -39,7 +59,8 @@ RUN wget -q ${SQOOP_INSTALLATION_URL} \
     && mkdir -p $SQOOP_HOME \
     && tar -xvf sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz -C ${SQOOP_HOME} --strip-components 1 \
     && rm sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0.tar.gz \
-    && rm -rf $SQOOP_HOME/docs
+    && rm -rf $SQOOP_HOME/docs \
+    && chown -R gen3:gen3 $SQOOP_HOME
 
 ENV POSTGRES_JAR_VERSION="42.2.9"
 ENV POSTGRES_JAR_URL="https://jdbc.postgresql.org/download/postgresql-${POSTGRES_JAR_VERSION}.jar" \
@@ -63,26 +84,36 @@ ENV HADOOP_CONF_DIR="$HADOOP_HOME/etc/hadoop" \
 
 RUN mkdir -p $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEPER_HOME
 
+RUN chown -R gen3:gen3 $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEPER_HOME
+
 ENV PATH=${SQOOP_HOME}/bin:${HADOOP_HOME}/sbin:$HADOOP_HOME/bin:${JAVA_HOME}/bin:${PATH}
 
-WORKDIR /pelican
+WORKDIR /${appname}
 
-RUN pip install --upgrade pip
+# install poetry on container
+RUN pip install poetry \
+    && poetry config
 
-# install poetry
-RUN pip install --upgrade "poetry<1.2"
+COPY . /${appname}
 
-COPY . /$appname
-WORKDIR /$appname
+WORKDIR /${appname}
 
 # cache so that poetry install will run if these files change
-COPY poetry.lock pyproject.toml /$appname/
+COPY poetry.lock pyproject.toml /${appname}/
 
-# install package and dependencies via poetry
-RUN poetry config virtualenvs.create false \
-    && poetry install -vv --no-dev --no-interaction \
-    && poetry show -v
+RUN poetry install -vv --no-interaction --without dev
 
-ENV PYTHONUNBUFFERED=1
+ENV PATH="$(poetry env info --path)/bin:$PATH"
+
+# Final stage
+FROM base
+
+COPY --from=builder /venv /venv
+COPY --from=builder /${appname} /${appname}
+
+# Switch to non-root user 'gen3' for the serving process
+USER gen3
+
+WORKDIR /${appname}
 
 ENTRYPOINT poetry run python job_export.py
