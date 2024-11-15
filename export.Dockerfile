@@ -91,10 +91,6 @@ ENV PATH=${SQOOP_HOME}/bin:${HADOOP_HOME}/sbin:$HADOOP_HOME/bin:${JAVA_HOME}/bin
 
 WORKDIR /${appname}
 
-# # install poetry on container
-# RUN pip install poetry \
-#     && poetry config
-
 COPY . /${appname}
 
 WORKDIR /${appname}
@@ -103,8 +99,6 @@ WORKDIR /${appname}
 COPY poetry.lock pyproject.toml /${appname}/
 
 RUN poetry install -vv --no-interaction --without dev
-
-# ENV PATH="$(poetry env info --path)/bin:$PATH"
 
 # Final stage
 FROM base
@@ -116,5 +110,7 @@ COPY --from=builder /${appname} /${appname}
 USER gen3
 
 WORKDIR /${appname}
+
+ENV PYTHONUNBUFFERED=1
 
 ENTRYPOINT poetry run python job_export.py
