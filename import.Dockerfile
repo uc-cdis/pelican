@@ -30,11 +30,7 @@ RUN dnf update && dnf install -y \
     wget \
     make \
     gcc \
-    perl-core \
-    zlib-devel \
     postgresql-libs \
-    postgresql15 \
-    gnutls-c++ \
     tar \
     postgresql-devel \
     && rm -rf /var/cache/yum
