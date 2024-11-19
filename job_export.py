@@ -146,7 +146,11 @@ if __name__ == "__main__":
 
     if access_format == "guid":
         # calculate md5 sum
-        md5_sum = hashlib.md5()
+        md5 = (
+            hashlib.md5()
+            if sys.version_info < (3, 9)
+            else hashlib.md5(usedforsecurity=False)
+        )  # nosec
         chunk_size = 8192
         with open(fname, "rb") as f:
             while True:
