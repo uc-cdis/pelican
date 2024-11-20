@@ -108,5 +108,5 @@ USER gen3
 WORKDIR /${appname}
 
 ENV PYTHONUNBUFFERED=1
-
-ENTRYPOINT poetry run python job_export.py
+CMD [ "echo 30000" ]
+# ENTRYPOINT poetry run python job_export.py
