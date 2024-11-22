@@ -28,8 +28,7 @@ FROM base AS builder
 RUN dnf update && dnf install -y \
     python3-devel \
     gcc \
-    postgresql-devel \
-    && rm -rf /var/cache/yum
+    postgresql-devel
 
 COPY . /${appname}
 
@@ -41,16 +40,14 @@ RUN poetry install -vv --no-interaction --without dev
 # Final stage
 FROM base
 
+COPY --from=builder /venv /venv
+COPY --from=builder /${appname} /${appname}
+
 RUN dnf update && dnf install -y \
-    java-1.8.0-amazon-corretto \
-    python3-devel \
-    gnutls \
     wget \
-    make \
-    gcc \
-    postgresql-libs \
     tar \
-    postgresql-devel \
+    java-11-amazon-corretto \
+    gnutls \
     && rm -rf /var/cache/yum
 
 ENV HADOOP_VERSION="3.2.1"
@@ -80,7 +77,7 @@ RUN wget -q ${SQOOP_INSTALLATION_URL} \
 ENV POSTGRES_JAR_VERSION="42.2.9"
 ENV POSTGRES_JAR_URL="https://jdbc.postgresql.org/download/postgresql-${POSTGRES_JAR_VERSION}.jar" \
     POSTGRES_JAR_PATH=$SQOOP_HOME/lib/postgresql-${POSTGRES_JAR_VERSION}.jar \
-    JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
+    JAVA_HOME="/usr/lib/jvm/java-11-amazon-corretto"
 
 RUN wget ${POSTGRES_JAR_URL} -O ${POSTGRES_JAR_PATH}
 
@@ -99,12 +96,9 @@ ENV HADOOP_CONF_DIR="$HADOOP_HOME/etc/hadoop" \
 
 RUN mkdir -p $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEPER_HOME
 
-RUN chown -R gen3:gen3 $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEPER_HOME
+RUN chown -R gen3:gen3 $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEPER_HOME $JAVA_HOME $POSTGRES_JAR_PATH
 
 ENV PATH=${SQOOP_HOME}/bin:${HADOOP_HOME}/sbin:$HADOOP_HOME/bin:${JAVA_HOME}/bin:${PATH}
-
-COPY --from=builder /venv /venv
-COPY --from=builder /${appname} /${appname}
 
 # Switch to non-root user 'gen3' for the serving process
 USER gen3
