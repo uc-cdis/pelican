@@ -50,14 +50,25 @@ if __name__ == "__main__":
     filters = json.dumps({"filter": input_data.get("filter", {})})
     case_ids = gql.execute(filters=filters)
 
-    with open("/peregrine-creds.json") as pelican_creds_file:
-        peregrine_creds = json.load(pelican_creds_file)
+    try:
+        with open("/peregrine-creds.json") as pelican_creds_file:
+            peregrine_creds = json.load(pelican_creds_file)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Failed to load credentials file: {e}")
+        peregrine_creds = {}
 
-    DB_URL = "jdbc:postgresql://{}/{}".format(
-        peregrine_creds["db_host"], peregrine_creds["db_database"]
-    )
-    DB_USER = peregrine_creds["db_username"]
-    DB_PASS = peregrine_creds["db_password"]
+    # Set variables, prioritizing environment variables
+    DB_HOST = os.getenv("DB_HOST", peregrine_creds.get("db_host"))
+    DB_DATABASE = os.getenv("DB_DATABASE", peregrine_creds.get("db_database"))
+    DB_USER = os.getenv("DB_USER", peregrine_creds.get("db_username"))
+    DB_PASS = os.getenv("DB_PASS", peregrine_creds.get("db_password"))
+
+    # Construct the database URL if possible
+    if DB_HOST and DB_DATABASE:
+        DB_URL = f"jdbc:postgresql://{DB_HOST}/{DB_DATABASE}"
+    else:
+        DB_URL = None
+        print("DB_HOST or DB_DATABASE is missing. DB_URL cannot be constructed.")
 
     dictionary_url = os.environ["DICTIONARY_URL"]
     dictionary, model = init_dictionary(url=dictionary_url)
@@ -170,8 +181,17 @@ if __name__ == "__main__":
         COMMONS = "https://" + hostname + "/"
 
         # try sending to indexd
-        with open("/indexd-creds.json") as indexd_creds_file:
-            indexd_creds = json.load(indexd_creds_file)
+        try:
+            with open("/indexd-creds.json") as indexd_creds_file:
+                indexd_creds = json.load(indexd_creds_file)
+                gdcapi_credential = indexd_creds["user_db"]["gdcapi"]
+        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+            print(f"Failed to load indexd credentials file or missing keys: {e}")
+            indexd_creds = {}
+            gdcapi_credential = None
+
+        # Load the indexd credential (fallback to SHEEPDOG env variable)
+        indexd_creds = os.getenv("SHEEPDOG", gdcapi_credential)
 
         s3_url = "s3://" + pelican_creds["manifest_bucket_name"] + "/" + avro_filename
 
@@ -191,7 +211,7 @@ if __name__ == "__main__":
 
         indexd_record = indexd_submit(
             COMMONS,
-            indexd_creds["user_db"]["gdcapi"],
+            indexd_creds,
             avro_filename,
             os.stat(fname).st_size,
             [s3_url],
