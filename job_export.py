@@ -68,7 +68,9 @@ if __name__ == "__main__":
         DB_URL = f"jdbc:postgresql://{DB_HOST}/{DB_DATABASE}"
     else:
         DB_URL = None
-        print("DB_HOST or DB_DATABASE is missing. DB_URL cannot be constructed.")
+        raise RuntimeError(
+            "DB_HOST or DB_DATABASE is missing. DB_URL cannot be constructed."
+        )
 
     dictionary_url = os.environ["DICTIONARY_URL"]
     dictionary, model = init_dictionary(url=dictionary_url)
