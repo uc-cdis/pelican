@@ -16,7 +16,7 @@ RUN python3 -m pip install pipx && \
 
 USER gen3
 # Install Poetry via pipx
-RUN pipx install poetry
+RUN pipx install 'poetry<2.0'
 ENV PATH="/home/gen3/.local/bin:${PATH}"
 USER root
 
