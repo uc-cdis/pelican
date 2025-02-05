@@ -5,7 +5,7 @@ on: push
 jobs:
   pelican-export:
     name: Build and Push Pelican Export Image
-    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    uses: uc-cdis/.github/.github/workflows/image_build_push_native.yaml@master
     with:
       DOCKERFILE_LOCATION: "./export.Dockerfile"
       OVERRIDE_REPO_NAME: "pelican-export"
