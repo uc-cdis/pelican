@@ -50,7 +50,7 @@ if __name__ == "__main__":
     filters = json.dumps({"filter": input_data.get("filter", {})})
     case_ids = gql.execute(filters=filters)
 
-    if os.path.exists("/peregrine-creds.json")
+    if os.path.exists("/peregrine-creds.json"):
         try:
             with open("/peregrine-creds.json") as pelican_creds_file:
                 peregrine_creds = json.load(pelican_creds_file)
@@ -58,7 +58,8 @@ if __name__ == "__main__":
             print(f"Failed to load credentials file: {e}")
             peregrine_creds = {}
     else:
-        print(f"Credentials file not found: {e}")
+        print(f"Credentials file not found. Using environment variables.")
+        peregrine_creds = {}
 
     # Set variables, prioritizing environment variables
     DB_HOST = os.getenv("DB_HOST", peregrine_creds.get("db_host"))
