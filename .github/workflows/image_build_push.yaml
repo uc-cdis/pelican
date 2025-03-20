@@ -1,6 +1,8 @@
 name: Build Image and Push
 
-on: push
+on: 
+  push:
+  workflow_dispatch:
 
 jobs:
   pelican-export:
