@@ -13,7 +13,7 @@ from pfb.base import handle_schema_field_unicode, is_enum, decode_enum
 
 logger = cdislogging.get_logger(__name__)
 logger.addHandler(cdislogging.get_stream_handler())
-logger.setLevel("INFO")
+logger.setLevel(logging.WARN)
 
 
 def create_node_dict(node_id, node_name, values, edges):
@@ -35,7 +35,6 @@ def get_ids_from_table(db, table, ids, id_column):
     data = None
 
     if not table or not ids or not id_column:
-        # TODO we need to use gen3logging
         logger.warn("[WARNING] Got a false-y input to a query")
         logger.debug(f"table: {table}, ids: {ids}, id_column: {id_column}")
         return data
