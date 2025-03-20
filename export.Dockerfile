@@ -40,9 +40,6 @@ RUN poetry install -vv --no-interaction --without dev
 # Final stage
 FROM base
 
-COPY --from=builder /venv /venv
-COPY --from=builder /${appname} /${appname}
-
 RUN dnf update && dnf install -y \
     wget \
     tar \
@@ -101,6 +98,10 @@ RUN chown -R gen3:gen3 $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEP
 ENV PATH=${SQOOP_HOME}/bin:${HADOOP_HOME}/sbin:$HADOOP_HOME/bin:${JAVA_HOME}/bin:${PATH}
 
 # Switch to non-root user 'gen3' for the serving process
+
+COPY --from=builder /venv /venv
+COPY --from=builder /${appname} /${appname}
+
 USER gen3
 
 ENV PYTHONUNBUFFERED=1
