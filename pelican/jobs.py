@@ -1,4 +1,6 @@
 import json
+import logging
+
 import sqlalchemy
 from itertools import chain
 from collections import defaultdict
@@ -7,6 +9,8 @@ from io import BytesIO
 
 from fastavro import reader
 from pfb.base import handle_schema_field_unicode, is_enum, decode_enum
+
+from pelican.config import logging
 
 
 def create_node_dict(node_id, node_name, values, edges):
@@ -28,10 +32,8 @@ def get_ids_from_table(db, table, ids, id_column):
     data = None
 
     if not table or not ids or not id_column:
-        # TODO we need to use gen3logging
-        print(
-            f"[WARNING] Got a false-y input to a query. table: {table}, ids: {ids}, id_column: {id_column}"
-        )
+        logger.warn("[WARNING] Got a false-y input to a query")
+        logger.debug(f"table: {table}, ids: {ids}, id_column: {id_column}")
         return data
 
     for ids_chunk in split_by_n(ids):
@@ -52,15 +54,17 @@ def get_ids_from_table(db, table, ids, id_column):
             else:
                 data = current_chunk_data
         except TypeError:
-            print(
+            logger.error(
                 f"[ERROR] Query got invalid inputs: table: {table}, ids: {ids}, id_column: {id_column}."
                 f"Split: {split_by_n(ids)}"
             )
             pass
         else:
-            print(
-                f"[WARNING] Got a false-y ids_chunk by splitting ids: {ids}. Split: {split_by_n(ids)}"
-            )
+            logger.warn("[WARNING] Got a false-y ids_chunk by splitting ids")
+            if (
+                logger.level == logging.DEBUG
+            ):  # Explicit level check to avoid unnecessary use of split_by_n
+                logger.debug(f"ids: {ids}. Split: {split_by_n(ids)}")
 
     return data if data and data.first() else None
 
@@ -71,7 +75,7 @@ def export_pfb_job(
     pfb_file.open_mode = "a+b"
 
     start_time = datetime.now()
-    print(f"Starting to export PFB at {start_time}")
+    logger.info(f"Starting to export PFB at {start_time}")
 
     it = ddt.get_edges_by_node()
 
@@ -102,7 +106,7 @@ def export_pfb_job(
             select_ids = current_ids[dst_label]
 
             if not select_ids:
-                print(
+                logger.info(
                     "[INFO] nothing to select from edge table: {}".format(
                         table_logs.format(edge_table)
                     )
@@ -112,15 +116,18 @@ def export_pfb_job(
             edges = get_ids_from_table(db, edge_table, select_ids, dst)
 
             if not edges:
-                print(
+                logger.info(
                     "[INFO] empty edge table: {}".format(table_logs.format(edge_table))
                 )
                 continue
 
             edges = edges.rdd.map(
-                lambda x: {"src_id": x["src_id"], "dst_id": x["dst_id"],}
+                lambda x: {
+                    "src_id": x["src_id"],
+                    "dst_id": x["dst_id"],
+                }
             )
-            print(table_logs.format(edge_table))
+            logger.info(table_logs.format(edge_table))
 
             for e in edges.toLocalIterator():
                 node_edges[e[src]].append({"dst_id": e[dst], "dst_name": dst_label})
@@ -136,7 +143,7 @@ def export_pfb_job(
         select_ids = current_ids[node_name]
 
         if not select_ids:
-            print(
+            logger.info(
                 "[INFO] nothing to select from node table: {}".format(
                     table_logs.format(node_table)
                 )
@@ -146,7 +153,9 @@ def export_pfb_job(
         nodes = get_ids_from_table(db, node_table, select_ids, "node_id")
 
         if not nodes:
-            print("[INFO] empty node table: {}".format(table_logs.format(node_table)))
+            logger.info(
+                "[INFO] empty node table: {}".format(table_logs.format(node_table))
+            )
             continue
 
         nodes = nodes.rdd.map(
@@ -154,7 +163,7 @@ def export_pfb_job(
                 x["node_id"], node_name, json.loads(x["_props"]), node_edges
             )
         )
-        print(table_logs.format(node_table))
+        logger.info(table_logs.format(node_table))
 
         # ensure the topological order for upward nodes:
         # Example:
@@ -173,7 +182,7 @@ def export_pfb_job(
         pfb_file.write(nodes_to_write, metadata=False)
 
     time_elapsed = datetime.now() - start_time
-    print(f"Elapsed time: {time_elapsed}")
+    logger.info(f"Elapsed time: {time_elapsed}")
 
     return
 
@@ -217,7 +226,7 @@ def convert_to_edge(x, edge_tables):
 
 def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
     start_time = datetime.now()
-    print(start_time)
+    logger.info(start_time)
 
     properties = {
         "user": db_user,
@@ -262,7 +271,7 @@ def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
     )
 
     for n in distinct_nodes:
-        print(n)
+        logger.info(n)
         rdd.filter(lambda x: x["name"] == n).map(
             lambda x: convert_to_node(x, _is_base64)
         ).toDF().write.jdbc(
@@ -282,12 +291,12 @@ def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
     )
 
     for e in distinct_edges:
-        print(e)
+        logger.info(e)
         rdd.flatMap(lambda x: convert_to_edge(x, tmp)).filter(lambda x: x[0] == e).map(
             lambda x: x[1]
         ).toDF().write.jdbc(url=db_url, table=e, mode=mode, properties=properties)
 
     time_elapsed = datetime.now() - start_time
-    print("Elapsed time: {}".format(time_elapsed))
+    logger.info("Elapsed time: {}".format(time_elapsed))
 
     return
