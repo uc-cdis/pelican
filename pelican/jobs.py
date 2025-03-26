@@ -1,5 +1,4 @@
 import json
-import logging
 
 import sqlalchemy
 from itertools import chain
@@ -10,7 +9,7 @@ from io import BytesIO
 from fastavro import reader
 from pfb.base import handle_schema_field_unicode, is_enum, decode_enum
 
-from pelican.config import logging
+from pelican.config import logger
 
 
 def create_node_dict(node_id, node_name, values, edges):
@@ -62,7 +61,7 @@ def get_ids_from_table(db, table, ids, id_column):
         else:
             logger.warn("[WARNING] Got a false-y ids_chunk by splitting ids")
             if (
-                logger.level == logging.DEBUG
+                logger.level == logger.DEBUG
             ):  # Explicit level check to avoid unnecessary use of split_by_n
                 logger.debug(f"ids: {ids}. Split: {split_by_n(ids)}")
 
