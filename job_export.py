@@ -234,7 +234,7 @@ if __name__ == "__main__":
         )
 
         # send s3 link and information to indexd to create guid and send it back
-        logger.info("[out] {}".format(indexd_record["did"]))
+        print("[out] {}".format(indexd_record["did"]))
 
     else:
-        logger.info("[out] {}".format(s3file))
+        print("[out] {}".format(s3file))
