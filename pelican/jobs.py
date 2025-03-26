@@ -61,8 +61,8 @@ def get_ids_from_table(db, table, ids, id_column):
         else:
             logger.warn("[WARNING] Got a false-y ids_chunk by splitting ids")
             if (
-                logger.level == logger.DEBUG
-            ):  # Explicit level check to avoid unnecessary use of split_by_n
+                logger.level == "DEBUG"
+            ):  # Explicit level check to avoid unnecessary use of split_by_n since the length of ids can be massive.
                 logger.debug(f"ids: {ids}. Split: {split_by_n(ids)}")
 
     return data if data and data.first() else None
