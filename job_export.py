@@ -18,6 +18,7 @@ from pelican.jobs import export_pfb_job
 from pelican.s3 import s3upload_file
 from pelican.indexd import indexd_submit
 from pelican.mds import metadata_submit_expiration
+from pelican.config import logger
 
 if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
@@ -27,8 +28,8 @@ if __name__ == "__main__":
     # the PFB file and indexd/mds records expire after 14 days by default
     record_expiration_days = os.environ.get("RECORD_EXPIRATION_DAYS", 14)
 
-    print("This is the format")
-    print(access_format)
+    logger.info("This is the format")
+    logger.info(access_format)
 
     with open("/pelican-creds.json") as pelican_creds_file:
         pelican_creds = json.load(pelican_creds_file)
@@ -54,7 +55,7 @@ if __name__ == "__main__":
         with open("/peregrine-creds.json") as pelican_creds_file:
             peregrine_creds = json.load(pelican_creds_file)
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Failed to load credentials file: {e}")
+        logger.error(f"Failed to load credentials file: {e}")
         peregrine_creds = {}
 
     # Set variables, prioritizing environment variables
@@ -192,7 +193,7 @@ if __name__ == "__main__":
                 indexd_creds = json.load(indexd_creds_file)
                 gdcapi_credential = indexd_creds["user_db"]["gdcapi"]
         except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
-            print(f"Failed to load indexd credentials file or missing keys: {e}")
+            logger.error(f"Failed to load indexd credentials file or missing keys: {e}")
             indexd_creds = {}
             gdcapi_credential = None
 

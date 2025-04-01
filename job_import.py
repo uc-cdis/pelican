@@ -12,6 +12,7 @@ from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.s3 import download_file
 
 from sqlalchemy.sql import text
+from pelican.config import logger
 
 if __name__ == "__main__":
     access_token = os.environ["ACCESS_TOKEN"]
@@ -26,8 +27,8 @@ if __name__ == "__main__":
         sheepdog_creds = json.load(pelican_creds_file)
 
     if "guid" in input_data_json:
-        print("a guid was supplied to the job")
-        print("we are getting a signed url for the given guid")
+        logger.info("a guid was supplied to the job")
+        logger.info("we are getting a signed url for the given guid")
 
         host = "http://revproxy-service"
 
@@ -40,7 +41,7 @@ if __name__ == "__main__":
         signed_request = requests.get(api_url, headers=auth_headers)
 
         signed_url = signed_request.json()
-        print("the signed url is ", signed_url["url"])
+        logger.info("the signed url is ", signed_url["url"])
         input_data_json["url"] = signed_url["url"]
 
     # DB_URL = "jdbc:postgresql://{}/{}".format(
@@ -60,19 +61,19 @@ if __name__ == "__main__":
     conn = engine.connect()
     conn.execute("commit")
 
-    print("we are creating a new database named ", NEW_DB_NAME)
+    logger.info("we are creating a new database named ", NEW_DB_NAME)
 
     create_db_command = text("create database :db")
-    print("This is the db create command: ", create_db_command)
+    logger.info("This is the db create command: ", create_db_command)
 
     grant_db_access = text("grant all on database :db to sheepdog with grant option")
-    print("This is the db access command: ", grant_db_access)
+    logger.info("This is the db access command: ", grant_db_access)
 
     try:
         conn.execute(create_db_command, db=NEW_DB_NAME)
         conn.execute(grant_db_access, db=NEW_DB_NAME)
     except Exception:
-        print("Unable to create database")
+        logger.error("Unable to create database")
         raise Exception
 
     conn.close()

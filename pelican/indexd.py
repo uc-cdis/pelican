@@ -1,5 +1,6 @@
 import requests
 import json
+from pelican.config import logger
 
 
 def indexd_submit(
@@ -29,10 +30,10 @@ def indexd_submit(
 
     indexd_hostname = hostname + "index/index"
 
-    print("-----------------------------------------------------")
-    print(indexd_hostname)
-    print(json.dumps(body))
-    print("-----------------------------------------------------")
+    logger.info("-----------------------------------------------------")
+    logger.info(indexd_hostname)
+    logger.info(json.dumps(body))
+    logger.info("-----------------------------------------------------")
 
     r = requests.post(
         indexd_hostname,
