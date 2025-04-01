@@ -22,27 +22,6 @@ USER root
 
 WORKDIR /${appname}
 
-# Builder stage
-FROM base AS builder
-
-RUN dnf update && dnf install -y \
-    python3-devel \
-    gcc \
-    postgresql-devel
-
-COPY . /${appname}
-
-# cache so that poetry install will run if these files change
-COPY poetry.lock pyproject.toml /${appname}/
-
-RUN poetry install -vv --no-interaction --without dev
-
-# Final stage
-FROM base
-
-COPY --from=builder /venv /venv
-COPY --from=builder /${appname} /${appname}
-
 RUN dnf update && dnf install -y \
     wget \
     tar \
@@ -99,6 +78,27 @@ RUN mkdir -p $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEPER_HOME
 RUN chown -R gen3:gen3 $ACCUMULO_HOME $HIVE_HOME $HBASE_HOME $HCAT_HOME $ZOOKEEPER_HOME $JAVA_HOME $POSTGRES_JAR_PATH
 
 ENV PATH=${SQOOP_HOME}/bin:${HADOOP_HOME}/sbin:$HADOOP_HOME/bin:${JAVA_HOME}/bin:${PATH}
+
+# Builder stage
+FROM base AS builder
+
+RUN dnf update && dnf install -y \
+    python3-devel \
+    gcc \
+    postgresql-devel
+
+COPY . /${appname}
+
+# cache so that poetry install will run if these files change
+COPY poetry.lock pyproject.toml /${appname}/
+
+RUN poetry install -vv --no-interaction --without dev
+
+# Final stage
+FROM base
+
+COPY --from=builder /venv /venv
+COPY --from=builder /${appname} /${appname}
 
 # Switch to non-root user 'gen3' for the serving process
 USER gen3
