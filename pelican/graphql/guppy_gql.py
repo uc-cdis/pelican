@@ -1,7 +1,7 @@
 import json
-import requests
 
 from .base_gql import BaseGQL
+from pelican.config import logger
 
 
 class GuppyGQL(BaseGQL):
@@ -23,7 +23,7 @@ class GuppyGQL(BaseGQL):
         return count
 
     def _download_endpoint(self, filters=None):
-        print("fallback to /download endpoint")
+        logger.info("fallback to /download endpoint")
         self.url = f"{self.hostname}/guppy/download"
         query = {
             "type": self.node,
