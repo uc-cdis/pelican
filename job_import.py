@@ -13,7 +13,7 @@ from pelican.s3 import download_file
 
 from sqlalchemy.sql import text
 
-from gdcdatamodel.models.submission import Base
+from gen3datamodel.models.submission import Base
 
 if __name__ == "__main__":
     access_token = os.environ["ACCESS_TOKEN"]
