@@ -70,7 +70,10 @@ if __name__ == "__main__":
     # create a database in the name that was passed through
     engine = sqlalchemy.create_engine(
         "postgresql://{user}:{password}@{host}/postgres".format(
-            user=DB_USER, password=DB_PASS, host=db_server["db_host"]
+            # user=DB_USER, password=DB_PASS, host=db_server["db_host"]
+            user=DB_USER,
+            password=DB_PASS,
+            host=sheepdog_creds["db_host"],
         )
     )
     conn = engine.connect()
