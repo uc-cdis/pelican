@@ -27,13 +27,13 @@ if __name__ == "__main__":
     with open("/sheepdog-creds.json") as sheepdog_creds_file:
         sheepdog_creds = json.load(sheepdog_creds_file)
 
-    # with open("/admin-servers.json") as dbfarm_file:
-    #    servers = json.load(dbfarm_file)
+    with open("/admin-servers.json") as dbfarm_file:
+        servers = json.load(dbfarm_file)
 
     # we look through the servers in the dbfarm to find the sheepdog db server
-    # for s in servers:
-    #    if servers[s]["db_host"] == sheepdog_creds["db_host"]:
-    #        db_server = servers[s]
+    for s in servers:
+        if servers[s]["db_host"] == sheepdog_creds["db_host"]:
+            db_server = servers[s]
 
     if "guid" in input_data_json:
         logger.info("a guid was supplied to the job")
@@ -53,8 +53,8 @@ if __name__ == "__main__":
         logger.info("the signed url is ", signed_url["url"])
         input_data_json["url"] = signed_url["url"]
 
-    DB_USER = sheepdog_creds["db_username"]
-    DB_PASS = sheepdog_creds["db_password"]
+    # DB_USER = sheepdog_creds["db_username"]
+    # DB_PASS = sheepdog_creds["db_password"]
 
     # DB_URL = "jdbc:postgresql://{}/{}".format(
     #     sheepdog_creds["db_host"], sheepdog_creds["db_database"]
@@ -62,8 +62,8 @@ if __name__ == "__main__":
 
     # setup DB engine for postgres user
     # this is needed as only the postgres user can create a new database and the sheepdog user cannot
-    # DB_USER = db_server["db_username"]
-    # DB_PASS = db_server["db_password"]
+    DB_USER = db_server["db_username"]
+    DB_PASS = db_server["db_password"]
 
     NEW_DB_NAME = input_data_json["db"]
 
