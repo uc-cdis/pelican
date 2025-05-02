@@ -88,6 +88,7 @@ if __name__ == "__main__":
     logger.info(f"This is the db access command: {grant_db_access}")
     try:
         conn.execute(drop_db_command)
+        conn.execute("commit")
         conn.execute(create_db_command)
         conn.execute("commit")
 
