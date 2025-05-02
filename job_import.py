@@ -77,18 +77,17 @@ if __name__ == "__main__":
     conn = engine.connect()
     conn.execute("commit")
 
-    logger.info("we are creating a new database named ", NEW_DB_NAME)
+    logger.info(f"we are creating a new database named {NEW_DB_NAME}")
 
-    create_str = "CREATE DATABASE {db}"
-    create_db_command = create_str.format(db=NEW_DB_NAME)
-    logger.info("This is the db create command: ", create_db_command)
+    # FIXME: DO NOT MERGE THIS until we know this is what we want
+    drop_db_command = "DROP DATABASE IF EXISTS {NEW_DB_NAME}"
+    create_db_command = "CREATE DATABASE {NEW_DB_NAME}"
+    logger.info(f"This is the db create command: {create_db_command}")
 
-    grant_str = "GRANT ALL ON DATABASE {db} TO {username} WITH GRANT OPTION"
-    grant_db_access = grant_str.format(
-        db=NEW_DB_NAME, username=sheepdog_creds["db_username"]
-    )
-    logger.info("This is the db access command: ", grant_db_access)
+    grant_db_access = f"GRANT ALL ON DATABASE {NEW_DB_NAME} TO {sheepdog_creds['db_username']} WITH GRANT OPTION"
+    logger.info(f"This is the db access command: {grant_db_access}")
     try:
+        conn.execute(drop_db_command)
         conn.execute(create_db_command)
         conn.execute("commit")
 
