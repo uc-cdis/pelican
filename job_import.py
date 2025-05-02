@@ -13,6 +13,7 @@ from pelican.s3 import download_file
 
 from sqlalchemy.sql import text
 
+from pelican.config import logger
 from gen3datamodel.models.submission import Base
 
 if __name__ == "__main__":
