@@ -80,8 +80,8 @@ if __name__ == "__main__":
     logger.info(f"we are creating a new database named {NEW_DB_NAME}")
 
     # FIXME: DO NOT MERGE THIS until we know this is what we want
-    drop_db_command = "DROP DATABASE IF EXISTS {NEW_DB_NAME}"
-    create_db_command = "CREATE DATABASE {NEW_DB_NAME}"
+    drop_db_command = f"DROP DATABASE IF EXISTS {NEW_DB_NAME}"
+    create_db_command = f"CREATE DATABASE {NEW_DB_NAME}"
     logger.info(f"This is the db create command: {create_db_command}")
 
     grant_db_access = f"GRANT ALL ON DATABASE {NEW_DB_NAME} TO {sheepdog_creds['db_username']} WITH GRANT OPTION"

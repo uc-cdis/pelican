@@ -105,4 +105,4 @@ USER gen3
 
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT poetry run python job_import.py
+ENTRYPOINT ["poetry", "run", "python", "job_import.py"]
