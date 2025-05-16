@@ -121,6 +121,7 @@ if __name__ == "__main__":
 
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
+    logger.info(f"{dictionary_url=}\n{ddt.get_node_table_by_label()}")
 
     conf = (
         SparkConf()
