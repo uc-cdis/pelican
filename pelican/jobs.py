@@ -268,14 +268,15 @@ def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
         .filter(lambda x: x != "Metadata")
         .collect()
     )
-
+    node_tables = ddt.get_node_table_by_label()
+    logger.info(f"{distinct_nodes=}\n{node_tables=}\n{node_tables.keys()=}")
     for n in distinct_nodes:
         logger.info(n)
         rdd.filter(lambda x: x["name"] == n).map(
             lambda x: convert_to_node(x, _is_base64)
         ).toDF().write.jdbc(
             url=db_url,
-            table=ddt.get_node_table_by_label()[n],
+            table=node_tables[n],
             mode=mode,
             properties=properties,
         )
