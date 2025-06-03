@@ -96,7 +96,7 @@ RUN poetry install -vv --no-interaction --without dev
 
 # Final stage
 FROM base
-
+RUN dnf install -y nano vim
 COPY --from=builder /venv /venv
 COPY --from=builder /${appname} /${appname}
 

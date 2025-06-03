@@ -19,7 +19,9 @@ from gen3datamodel.models.submission import Base
 if __name__ == "__main__":
     import time
 
-    time.sleep(10000)  # wait for the environment to be ready
+    should_sleep = os.environ.get("SHOULD_SLEEP", "true").lower() == "true"
+    if should_sleep:
+        time.sleep(10000)  # wait for the environment to be ready
     access_token = os.environ["ACCESS_TOKEN"]
     hostname = os.environ["GEN3_HOSTNAME"]
     input_data = os.environ["INPUT_DATA"]
