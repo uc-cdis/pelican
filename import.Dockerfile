@@ -102,7 +102,7 @@ COPY --from=builder /${appname} /${appname}
 
 # Switch to non-root user 'gen3' for the serving process
 USER gen3
-
+RUN chown -R gen3:gen3 /${appname}
 ENV PYTHONUNBUFFERED=1
 
 ENTRYPOINT ["poetry", "run", "python", "job_import.py"]
