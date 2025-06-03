@@ -24,6 +24,11 @@ if __name__ == "__main__":
     input_data_json = json.loads(input_data)
 
     dictionary_url = os.environ["DICTIONARY_URL"]
+    dictionary, model = init_dictionary(url=dictionary_url)
+    ddt = DataDictionaryTraversal(model)
+    logger.info(f"{dictionary_url=}\n{ddt.get_node_table_by_label()}")
+    node_tables = ddt.get_node_table_by_label()
+    logger.info(f"{node_tables=}\n{node_tables.keys()=}")
 
     with open("/sheepdog-creds.json") as sheepdog_creds_file:
         sheepdog_creds = json.load(sheepdog_creds_file)
@@ -118,10 +123,6 @@ if __name__ == "__main__":
     Base.metadata.create_all(engine)
 
     DB_URL = "jdbc:postgresql://{}/{}".format(sheepdog_creds["db_host"], NEW_DB_NAME)
-
-    dictionary, model = init_dictionary(url=dictionary_url)
-    ddt = DataDictionaryTraversal(model)
-    logger.info(f"{dictionary_url=}\n{ddt.get_node_table_by_label()}")
 
     conf = (
         SparkConf()
