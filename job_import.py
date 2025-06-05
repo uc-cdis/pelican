@@ -23,8 +23,20 @@ if __name__ == "__main__":
 
     dictionary_url = os.environ["DICTIONARY_URL"]
 
-    with open("/sheepdog-creds.json") as pelican_creds_file:
-        sheepdog_creds = json.load(pelican_creds_file)
+    dictionary, model = init_dictionary(url=dictionary_url)
+    ddt = DataDictionaryTraversal(model)
+    logger.info("Dictionary initialized successfully")
+
+    with open("/sheepdog-creds.json") as sheepdog_creds_file:
+        sheepdog_creds = json.load(sheepdog_creds_file)
+
+    with open("/admin-servers.json") as dbfarm_file:
+        servers = json.load(dbfarm_file)
+
+    # we look through the servers in the dbfarm to find the sheepdog db server
+    for s in servers:
+        if servers[s]["db_host"] == sheepdog_creds["db_host"]:
+            db_server = servers[s]
 
     if "guid" in input_data_json:
         logger.info("a guid was supplied to the job")
@@ -44,44 +56,67 @@ if __name__ == "__main__":
         logger.info("the signed url is ", signed_url["url"])
         input_data_json["url"] = signed_url["url"]
 
-    # DB_URL = "jdbc:postgresql://{}/{}".format(
-    #     sheepdog_creds["db_host"], sheepdog_creds["db_database"]
-    # )
-    DB_USER = sheepdog_creds["db_username"]
-    DB_PASS = sheepdog_creds["db_password"]
+    # setup DB engine for postgres user
+    # this is needed as only the postgres user can create a new database and the sheepdog user cannot
+    DB_USER = db_server["db_username"]
+    DB_PASS = db_server["db_password"]
 
     NEW_DB_NAME = input_data_json["db"]
 
     # create a database in the name that was passed through
     engine = sqlalchemy.create_engine(
-        "postgres://{user}:{password}@{host}/postgres".format(
-            user=DB_USER, password=DB_PASS, host=sheepdog_creds["db_host"]
+        "postgresql://{user}:{password}@{host}/postgres".format(
+            user=DB_USER, password=DB_PASS, host=db_server["db_host"]
         )
     )
     conn = engine.connect()
     conn.execute("commit")
 
-    logger.info("we are creating a new database named ", NEW_DB_NAME)
+    logger.info(f"we are creating a new database named {NEW_DB_NAME}")
 
-    create_db_command = text("create database :db")
-    logger.info("This is the db create command: ", create_db_command)
+    # FIXME: DO NOT MERGE THIS until we know what to do with the duplicate database
+    drop_db_command = f"DROP DATABASE IF EXISTS {NEW_DB_NAME}"
 
-    grant_db_access = text("grant all on database :db to sheepdog with grant option")
-    logger.info("This is the db access command: ", grant_db_access)
+    create_db_command = f"CREATE DATABASE {NEW_DB_NAME}"
+    logger.info(f"This is the db create command: {create_db_command}")
 
+    grant_db_access = f"GRANT ALL ON DATABASE {NEW_DB_NAME} TO {sheepdog_creds['db_username']} WITH GRANT OPTION"
+    logger.info(f"This is the db access command: {grant_db_access}")
     try:
-        conn.execute(create_db_command, db=NEW_DB_NAME)
-        conn.execute(grant_db_access, db=NEW_DB_NAME)
-    except Exception:
-        logger.error("Unable to create database")
+        conn.execute(create_db_command)
+        conn.execute("commit")
+
+        conn.execute(grant_db_access)
+        conn.execute("commit")
+    except Exception as e:
+        logger.error("Unable to create database... error: ", e)
         raise Exception
 
+    # close db connection for root user
     conn.close()
 
-    DB_URL = "jdbc:postgresql://{}/{}".format(sheepdog_creds["db_host"], NEW_DB_NAME)
+    # setup the transaction tables for the db
+    logger.info("Setting up transaction tables for new sheepdog db")
+    PORT = "5432"
+    engine = sqlalchemy.create_engine(
+        "postgresql://{user}:{password}@{host}:{port}/{database}".format(
+            user=DB_USER,
+            host=db_server["db_host"],
+            port=PORT,
+            password=DB_PASS,
+            database=NEW_DB_NAME,
+        )
+    )
 
-    dictionary, model = init_dictionary(url=dictionary_url)
-    ddt = DataDictionaryTraversal(model)
+    # the gen3datamodel expects dictionary initiated on load,
+    # so this can't be imported at the top of the module
+
+    from gen3datamodel.models.submission import Base
+
+    # create db transaction tables
+    Base.metadata.create_all(engine)
+
+    DB_URL = "jdbc:postgresql://{}/{}".format(sheepdog_creds["db_host"], NEW_DB_NAME)
 
     conf = (
         SparkConf()

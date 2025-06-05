@@ -268,7 +268,6 @@ def import_pfb_job(spark, pfb_file, ddt, db_url, db_user, db_pass):
         .filter(lambda x: x != "Metadata")
         .collect()
     )
-
     for n in distinct_nodes:
         logger.info(n)
         rdd.filter(lambda x: x["name"] == n).map(

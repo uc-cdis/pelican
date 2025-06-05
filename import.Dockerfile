@@ -96,13 +96,12 @@ RUN poetry install -vv --no-interaction --without dev
 
 # Final stage
 FROM base
-
+RUN dnf install -y nano vim
 COPY --from=builder /venv /venv
 COPY --from=builder /${appname} /${appname}
 
-# Switch to non-root user 'gen3' for the serving process
-USER gen3
-
+# # Switch to non-root user 'gen3' for the serving process
+# USER gen3
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT poetry run python job_import.py
+ENTRYPOINT ["poetry", "run", "python", "job_import.py"]
