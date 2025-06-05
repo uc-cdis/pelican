@@ -12,16 +12,9 @@ from pelican.dictionary import init_dictionary, DataDictionaryTraversal
 from pelican.s3 import download_file
 
 from sqlalchemy.sql import text
-
 from pelican.config import logger
-from gen3datamodel.models.submission import Base
 
 if __name__ == "__main__":
-    import time
-
-    should_sleep = os.environ.get("SHOULD_SLEEP", "true").lower() == "true"
-    if should_sleep:
-        time.sleep(10000)  # wait for the environment to be ready
     access_token = os.environ["ACCESS_TOKEN"]
     hostname = os.environ["GEN3_HOSTNAME"]
     input_data = os.environ["INPUT_DATA"]
@@ -29,11 +22,10 @@ if __name__ == "__main__":
     input_data_json = json.loads(input_data)
 
     dictionary_url = os.environ["DICTIONARY_URL"]
+
     dictionary, model = init_dictionary(url=dictionary_url)
     ddt = DataDictionaryTraversal(model)
-    logger.info(f"{dictionary_url=}\n{ddt.get_node_table_by_label()}")
-    node_tables = ddt.get_node_table_by_label()
-    logger.info(f"{node_tables=}\n{node_tables.keys()=}")
+    logger.info("Dictionary initialized successfully")
 
     with open("/sheepdog-creds.json") as sheepdog_creds_file:
         sheepdog_creds = json.load(sheepdog_creds_file)
@@ -64,13 +56,6 @@ if __name__ == "__main__":
         logger.info("the signed url is ", signed_url["url"])
         input_data_json["url"] = signed_url["url"]
 
-    # DB_USER = sheepdog_creds["db_username"]
-    # DB_PASS = sheepdog_creds["db_password"]
-
-    # DB_URL = "jdbc:postgresql://{}/{}".format(
-    #     sheepdog_creds["db_host"], sheepdog_creds["db_database"]
-    # )
-
     # setup DB engine for postgres user
     # this is needed as only the postgres user can create a new database and the sheepdog user cannot
     DB_USER = db_server["db_username"]
@@ -91,14 +76,13 @@ if __name__ == "__main__":
 
     # FIXME: DO NOT MERGE THIS until we know this is what we want
     drop_db_command = f"DROP DATABASE IF EXISTS {NEW_DB_NAME}"
+
     create_db_command = f"CREATE DATABASE {NEW_DB_NAME}"
     logger.info(f"This is the db create command: {create_db_command}")
 
     grant_db_access = f"GRANT ALL ON DATABASE {NEW_DB_NAME} TO {sheepdog_creds['db_username']} WITH GRANT OPTION"
     logger.info(f"This is the db access command: {grant_db_access}")
     try:
-        conn.execute(drop_db_command)
-        conn.execute("commit")
         conn.execute(create_db_command)
         conn.execute("commit")
 
@@ -123,6 +107,11 @@ if __name__ == "__main__":
             database=NEW_DB_NAME,
         )
     )
+
+    # the gen3datamodel expects dictionary initiated on load,
+    # so this can't be imported at the top of the module
+
+    from gen3datamodel.models.submission import Base
 
     # create db transaction tables
     Base.metadata.create_all(engine)
