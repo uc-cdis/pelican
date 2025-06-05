@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     logger.info(f"we are creating a new database named {NEW_DB_NAME}")
 
-    # FIXME: DO NOT MERGE THIS until we know this is what we want
+    # FIXME: DO NOT MERGE THIS until we know what to do with the duplicate database
     drop_db_command = f"DROP DATABASE IF EXISTS {NEW_DB_NAME}"
 
     create_db_command = f"CREATE DATABASE {NEW_DB_NAME}"
