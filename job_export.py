@@ -5,7 +5,7 @@ import hashlib
 
 from datetime import datetime
 
-from pfb.importers.gen3dict import _from_dict
+from pfb.importers.gen3dict import write_from_dict
 from pfb.reader import PFBReader
 from pfb.writer import PFBWriter
 from pyspark import SparkConf
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
     with tempfile.NamedTemporaryFile(mode="w+b", delete=False) as avro_output:
         with PFBWriter(avro_output) as pfb_file:
-            _from_dict(pfb_file, dictionary_url)
+            write_from_dict(pfb_file, dictionary_url)
             filename = pfb_file.name
 
     with tempfile.NamedTemporaryFile(mode="w+b", delete=False) as avro_output:
