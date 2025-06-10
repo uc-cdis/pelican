@@ -8,7 +8,7 @@ authors = ["CTDS UChicago <cdis@uchicago.edu>"]
 python = ">=3.9,<4"
 pypfb = ">=0.5,<1"
 fastavro = ">=1,<2"
-requests = "^2.25.1"
+requests = "^2.32.4"
 psycopg2-binary = ">=2.8.4"
 pyspark = "^3.0.1"
 psutil = "^5.8.0"
