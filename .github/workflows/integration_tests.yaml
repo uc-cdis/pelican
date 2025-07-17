@@ -9,7 +9,7 @@ concurrency:
 jobs:
   integration_tests:
     name: Integration tests
-    uses: uc-cdis/.github/.github/workflows/integration_tests.yaml@master
+    uses: uc-cdis/gen3-code-vigil/.github/workflows/shared_integration_tests.yaml@chore/add_sower_job_service_support
     with:
       # Integration tests present only for pelican-export right now
       QUAY_REPO: pelican-export
