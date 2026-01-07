@@ -1,7 +1,5 @@
-ARG AZLINUX_BASE_VERSION=master
-
 # Base stage with python-build-base
-FROM quay.io/cdis/python-build-base:${AZLINUX_BASE_VERSION} AS base
+FROM quay.io/cdis/amazonlinux-base:3.13-pythonbase AS base
 
 ENV appname=pelican
 
