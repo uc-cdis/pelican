@@ -3,12 +3,6 @@ FROM quay.io/cdis/amazonlinux-base:3.13-pythonbase AS base
 
 ENV appname=pelican
 
-# Already done in base image 
-# create gen3 user
-# Create a group 'gen3' with GID 1000 and a user 'gen3' with UID 1000
-# RUN groupadd -g 1000 gen3 && \
-#    useradd -m -s /bin/bash -u 1000 -g gen3 gen3
-
 # Install pipx
 RUN python3 -m pip install pipx && \
     python3 -m pipx ensurepath
