@@ -3,8 +3,6 @@ FROM quay.io/cdis/amazonlinux-base:3.13-pythonbase AS base
 
 ENV appname=pelican
 
-USER root
-
 # Install pipx
 RUN python3 -m pip install pipx && \
     python3 -m pipx ensurepath
