@@ -168,6 +168,55 @@ if __name__ == "__main__":
     )
     # print('debug - uploading to s3')
 
+    # If a project_id was provided, copy the exported file to the data
+    # delivery bucket via amanuensis's presigned-upload endpoint, and
+    # update the project's approved_url.
+    project_id = input_data.get("project_id")
+    if project_id:
+        hostname = os.environ["GEN3_HOSTNAME"]
+        COMMONS = "https://" + hostname + "/"
+
+        if not pelican_creds.get("fence_client_id") or not pelican_creds.get("fence_client_secret"):
+            raise RuntimeError(
+                "fence_client_id/fence_client_secret are required in pelican-creds.json to copy the export to the delivery bucket"
+            )
+
+        r = requests.post(
+            f"{COMMONS}user/oauth2/token?grant_type=client_credentials&scope=openid",
+            auth=(
+                pelican_creds["fence_client_id"],
+                pelican_creds["fence_client_secret"],
+            ),
+        )
+        if r.status_code != 200:
+            raise Exception(
+                f"Failed to obtain access token using OIDC client credentials - {r.status_code}:\n{r.text}"
+            )
+        client_access_token = r.json()["access_token"]
+
+        upload_file_response = requests.post(
+            f"{COMMONS}amanuensis/admin/upload-file",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {client_access_token}",
+            },
+            json={"key": avro_filename, "project_id": project_id},
+        )
+        if upload_file_response.status_code != 200:
+            raise Exception(
+                f"Failed to get presigned upload url - {upload_file_response.status_code}:\n{upload_file_response.text}"
+            )
+
+        presigned_upload_url = upload_file_response.json()
+
+        with open(fname, "rb") as data:
+            put_response = requests.put(presigned_upload_url, data=data)
+
+        if put_response.status_code != 200:
+            raise Exception(
+                f"Failed to upload exported file to delivery bucket - {put_response.status_code}:\n{put_response.text}"
+            )
+
     if access_format == "guid":
         # calculate md5 sum
         md5 = (
