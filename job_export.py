@@ -168,11 +168,11 @@ if __name__ == "__main__":
     )
     # print('debug - uploading to s3')
 
-    # If a project_id was provided, copy the exported file to the data
+    # If a data_request_id was provided, copy the exported file to the data
     # delivery bucket via amanuensis's presigned-upload endpoint, and
     # update the project's approved_url.
-    project_id = input_data.get("project_id")
-    if project_id:
+    data_request_id = input_data.get("data_request_id")
+    if data_request_id:
         hostname = os.environ["GEN3_HOSTNAME"]
         COMMONS = "https://" + hostname + "/"
 
@@ -200,7 +200,7 @@ if __name__ == "__main__":
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {client_access_token}",
             },
-            json={"key": avro_filename, "project_id": project_id},
+            json={"key": avro_filename, "data_request_id": data_request_id},
         )
         if upload_file_response.status_code != 200:
             raise Exception(
