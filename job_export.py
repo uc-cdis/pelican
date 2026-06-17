@@ -20,6 +20,22 @@ from pelican.indexd import indexd_submit
 from pelican.mds import metadata_submit_expiration
 from pelican.config import logger
 
+
+def get_client_access_token(commons, pelican_creds):
+    r = requests.post(
+        f"{commons}user/oauth2/token?grant_type=client_credentials&scope=openid",
+        auth=(
+            pelican_creds["fence_client_id"],
+            pelican_creds["fence_client_secret"],
+        ),
+    )
+    if r.status_code != 200:
+        raise Exception(
+            f"Failed to obtain access token using OIDC client credentials - {r.status_code}:\n{r.text}"
+        )
+    return r.json()["access_token"]
+
+
 if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
     access_token = os.environ["ACCESS_TOKEN"]
@@ -181,18 +197,7 @@ if __name__ == "__main__":
                 "fence_client_id/fence_client_secret are required in pelican-creds.json to copy the export to the delivery bucket"
             )
 
-        r = requests.post(
-            f"{COMMONS}user/oauth2/token?grant_type=client_credentials&scope=openid",
-            auth=(
-                pelican_creds["fence_client_id"],
-                pelican_creds["fence_client_secret"],
-            ),
-        )
-        if r.status_code != 200:
-            raise Exception(
-                f"Failed to obtain access token using OIDC client credentials - {r.status_code}:\n{r.text}"
-            )
-        client_access_token = r.json()["access_token"]
+        client_access_token = get_client_access_token(COMMONS, pelican_creds)
 
         upload_file_response = requests.post(
             f"{COMMONS}amanuensis/admin/upload-file",
@@ -262,18 +267,7 @@ if __name__ == "__main__":
         s3_url = "s3://" + pelican_creds["manifest_bucket_name"] + "/" + avro_filename
 
         # exchange the client ID and secret for an access token
-        r = requests.post(
-            f"{COMMONS}user/oauth2/token?grant_type=client_credentials&scope=openid",
-            auth=(
-                pelican_creds["fence_client_id"],
-                pelican_creds["fence_client_secret"],
-            ),
-        )
-        if r.status_code != 200:
-            raise Exception(
-                f"Failed to obtain access token using OIDC client credentials - {r.status_code}:\n{r.text}"
-            )
-        client_access_token = r.json()["access_token"]
+        client_access_token = get_client_access_token(COMMONS, pelican_creds)
 
         indexd_record = indexd_submit(
             COMMONS,
