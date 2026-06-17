@@ -200,7 +200,7 @@ if __name__ == "__main__":
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {client_access_token}",
             },
-            json={"key": avro_filename, "data_request_id": data_request_id},
+            json={"key": avro_filename, "project_id": data_request_id},
         )
         if upload_file_response.status_code != 200:
             raise Exception(
