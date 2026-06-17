@@ -189,6 +189,7 @@ if __name__ == "__main__":
     # update the project's approved_url.
     data_request_id = input_data.get("data_request_id")
     if data_request_id:
+        logger.info(f"data_request_id {data_request_id} found, copying export to delivery bucket")
         hostname = os.environ["GEN3_HOSTNAME"]
         COMMONS = "https://" + hostname + "/"
 
@@ -198,6 +199,7 @@ if __name__ == "__main__":
             )
 
         client_access_token = get_client_access_token(COMMONS, pelican_creds)
+        logger.info("Successfully obtained access token")
 
         upload_file_response = requests.post(
             f"{COMMONS}amanuensis/admin/upload-file",
@@ -208,9 +210,11 @@ if __name__ == "__main__":
             json={"key": avro_filename, "project_id": data_request_id},
         )
         if upload_file_response.status_code != 200:
+            logger.error(f"Failed to get presigned upload url - {upload_file_response.status_code}:\n{upload_file_response.text}")
             raise Exception(
                 f"Failed to get presigned upload url - {upload_file_response.status_code}:\n{upload_file_response.text}"
             )
+        logger.info("Successfully obtained presigned upload url")
 
         presigned_upload_url = upload_file_response.json()
 
@@ -218,9 +222,11 @@ if __name__ == "__main__":
             put_response = requests.put(presigned_upload_url, data=data)
 
         if put_response.status_code != 200:
+            logger.error(f"Failed to upload exported file to delivery bucket - {put_response.status_code}:\n{put_response.text}")
             raise Exception(
                 f"Failed to upload exported file to delivery bucket - {put_response.status_code}:\n{put_response.text}"
             )
+        logger.info(f"Successfully uploaded export to delivery bucket for data_request_id {data_request_id}")
 
     if access_format == "guid":
         # calculate md5 sum
