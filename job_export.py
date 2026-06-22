@@ -20,6 +20,22 @@ from pelican.indexd import indexd_submit
 from pelican.mds import metadata_submit_expiration
 from pelican.config import logger
 
+
+def get_client_access_token(commons, pelican_creds):
+    r = requests.post(
+        f"{commons}user/oauth2/token?grant_type=client_credentials&scope=openid",
+        auth=(
+            pelican_creds["fence_client_id"],
+            pelican_creds["fence_client_secret"],
+        ),
+    )
+    if r.status_code != 200:
+        raise Exception(
+            f"Failed to obtain access token using OIDC client credentials - {r.status_code}:\n{r.text}"
+        )
+    return r.json()["access_token"]
+
+
 if __name__ == "__main__":
     node = os.environ["ROOT_NODE"]
     access_token = os.environ["ACCESS_TOKEN"]
@@ -168,6 +184,50 @@ if __name__ == "__main__":
     )
     # print('debug - uploading to s3')
 
+    # If a data_request_id was provided, copy the exported file to the data
+    # delivery bucket via amanuensis's presigned-upload endpoint, and
+    # update the project's approved_url.
+    data_request_id = input_data.get("data_request_id")
+    if data_request_id:
+        logger.info(f"data_request_id {data_request_id} found, copying export to delivery bucket")
+        hostname = os.environ["GEN3_HOSTNAME"]
+        COMMONS = "https://" + hostname + "/"
+
+        if not pelican_creds.get("fence_client_id") or not pelican_creds.get("fence_client_secret"):
+            raise RuntimeError(
+                "fence_client_id/fence_client_secret are required in pelican-creds.json to copy the export to the delivery bucket"
+            )
+
+        client_access_token = get_client_access_token(COMMONS, pelican_creds)
+        logger.info("Successfully obtained access token")
+
+        upload_file_response = requests.post(
+            f"{COMMONS}amanuensis/admin/upload-file",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {client_access_token}",
+            },
+            json={"key": avro_filename, "project_id": data_request_id},
+        )
+        if upload_file_response.status_code != 200:
+            logger.error(f"Failed to get presigned upload url - {upload_file_response.status_code}:\n{upload_file_response.text}")
+            raise Exception(
+                f"Failed to get presigned upload url - {upload_file_response.status_code}:\n{upload_file_response.text}"
+            )
+        logger.info("Successfully obtained presigned upload url")
+
+        presigned_upload_url = upload_file_response.json()
+
+        with open(fname, "rb") as data:
+            put_response = requests.put(presigned_upload_url, data=data)
+
+        if put_response.status_code != 200:
+            logger.error(f"Failed to upload exported file to delivery bucket - {put_response.status_code}:\n{put_response.text}")
+            raise Exception(
+                f"Failed to upload exported file to delivery bucket - {put_response.status_code}:\n{put_response.text}"
+            )
+        logger.info(f"Successfully uploaded export to delivery bucket for data_request_id {data_request_id}")
+
     if access_format == "guid":
         # calculate md5 sum
         md5 = (
@@ -213,18 +273,7 @@ if __name__ == "__main__":
         s3_url = "s3://" + pelican_creds["manifest_bucket_name"] + "/" + avro_filename
 
         # exchange the client ID and secret for an access token
-        r = requests.post(
-            f"{COMMONS}user/oauth2/token?grant_type=client_credentials&scope=openid",
-            auth=(
-                pelican_creds["fence_client_id"],
-                pelican_creds["fence_client_secret"],
-            ),
-        )
-        if r.status_code != 200:
-            raise Exception(
-                f"Failed to obtain access token using OIDC client credentials - {r.status_code}:\n{r.text}"
-            )
-        client_access_token = r.json()["access_token"]
+        client_access_token = get_client_access_token(COMMONS, pelican_creds)
 
         indexd_record = indexd_submit(
             COMMONS,
