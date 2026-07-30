@@ -41,7 +41,7 @@ if __name__ == "__main__":
         signed_request = requests.get(api_url, headers=auth_headers)
 
         signed_url = signed_request.json()
-        logger.info("the signed url is ", signed_url["url"])
+        logger.info("Signed URL: %s", signed_url["url"])
         input_data_json["url"] = signed_url["url"]
 
     # DB_URL = "jdbc:postgresql://{}/{}".format(
@@ -61,17 +61,19 @@ if __name__ == "__main__":
     conn = engine.connect()
     conn.execute("commit")
 
-    logger.info("we are creating a new database named ", NEW_DB_NAME)
+    logger.info("Creating database %s", NEW_DB_NAME)
 
-    create_db_command = text("create database :db")
-    logger.info("This is the db create command: ", create_db_command)
+    create_db_command = text(f'CREATE DATABASE "{NEW_DB_NAME}"')
+    logger.info("Create DB command: %s", create_db_command)
 
-    grant_db_access = text("grant all on database :db to sheepdog with grant option")
-    logger.info("This is the db access command: ", grant_db_access)
+    grant_db_access = text(
+        f'GRANT ALL PRIVILEGES ON DATABASE "{NEW_DB_NAME}" TO sheepdog WITH GRANT OPTION'
+    )
+    logger.info("Grant DB command: %s", grant_db_access)
 
     try:
-        conn.execute(create_db_command, db=NEW_DB_NAME)
-        conn.execute(grant_db_access, db=NEW_DB_NAME)
+        conn.execute(create_db_command)
+        conn.execute(grant_db_access)
     except Exception:
         logger.error("Unable to create database")
         raise Exception
