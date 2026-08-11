@@ -171,9 +171,17 @@ if __name__ == "__main__":
                     True,  # include upward nodes: project, program etc
                 )
 
-    avro_filename = "{}.avro".format(
-        datetime.now().strftime("export_%Y-%m-%dT%H:%M:%S")
-    )
+    consortium_name = input_data.get("consortium_name")
+    project_code = input_data.get("project_code")
+
+    if consortium_name and project_code:
+        avro_filename = "{}_{}_{}.avro".format(
+            datetime.now().strftime("%Y%m%d"), consortium_name.lower(), project_code
+        )
+    else:
+        avro_filename = "{}.avro".format(
+            datetime.now().strftime("export_%Y-%m-%dT%H:%M:%S")
+        )
     # print(f'debug - avro_filename: {avro_filename}')
     s3file = s3upload_file(
         pelican_creds["manifest_bucket_name"],
